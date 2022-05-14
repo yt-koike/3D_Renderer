@@ -12,6 +12,7 @@ public:
     Vec3() { set(0, 0, 0); }
     Vec3(double a) { set(a, a, a); }
     Vec3(double x, double y, double z) { set(x, y, z); }
+    
     double getX() { return x; }
     double getY() { return y; }
     double getZ() { return z; }

@@ -166,6 +166,8 @@ Color Scene::rayTrace(Ray camera)
 {
   return rayTraceRecursive(camera, 0);
 }
+
+
 /*
 Color Scene::rayTraceSimple(Ray camera)
 {
