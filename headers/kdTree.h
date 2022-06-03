@@ -17,14 +17,16 @@ Vec3 getEnd(){return end;}
 class TreeNode{
     private:
     Vec3* pos;
-    TreeNode* left;
-    TreeNode* right;
+    Vec3* normal;
+    TreeNode* left = nullptr;
+    TreeNode* right = nullptr;
     int leafFlag = 0;
-    Triangle* leaf;
+    Triangle* leaf = nullptr;
     public:
-    TreeNode(Vec3* pos,TreeNode* left,TreeNode* right){this->pos = pos;this-> left = left;this-> right = right;}
+    TreeNode(Vec3* pos,Vec3* normal,TreeNode* left,TreeNode* right){this->pos = pos;this->normal=normal;this-> left = left;this-> right = right;}
     TreeNode(Triangle* t){leafFlag=1;leaf=t;}
     Vec3* getPos(){return pos;}
+    Vec3* getNormal(){return normal;}
     TreeNode* getLeft(){return left;}
     TreeNode* getRight(){return right;}
     int isLeaf(){return leafFlag;}
@@ -34,13 +36,13 @@ class TreeNode{
 int inVoxel(Vec3 p,Voxel v){
     Vec3 start= v.getStart();
     Vec3 end = v.getEnd();
-    return (start.getX() <= p.getX() && p.getX() <=end.getX()) ||
-    (start.getY() <= p.getY() && p.getY() <=end.getY()) || 
+    return (start.getX() <= p.getX() && p.getX() <=end.getX()) &&
+    (start.getY() <= p.getY() && p.getY() <=end.getY()) &&
     (start.getZ() <= p.getZ() && p.getZ() <=end.getZ());
 }
 
 int inVoxel(Triangle t,Voxel v){
-    return inVoxel(t.getV1(),v) || inVoxel(t.getV2(),v) || inVoxel(t.getV3(),v);
+     return inVoxel(t.getV1(),v) || inVoxel(t.getV2(),v) || inVoxel(t.getV3(),v);
 }
 
 Plane findPlane(std::vector<Triangle *> ts,Voxel v){
@@ -59,22 +61,22 @@ TreeNode* recBuild(std::vector<Triangle *> ts,Voxel v){
     Vec3 vR_end = v.getEnd();
     Vec3 vR_start  = vL_start.copy();
     Vec3 vL_end  = vR_end.copy();
-
-    if(planeN.getX()==1){ // YZ
+    if(abs(planeN.getX()-1)<0.001f){ // YZ
         double pX = planeP.getX();
         vR_start.setX(pX);
         vL_end.setX(pX);
-    }else if(planeN.getY() == 1){ // XZ
+    }else if(abs(planeN.getY()-1)<0.001f){ // XZ
         double pY = planeP.getY();
         vR_start.setY(pY);
         vL_end.setY(pY);
-    }else if(planeN.getZ() == 1){ // XY
+    }else if(abs(planeN.getZ()-1)<0.001f){ // XY
         double pZ = planeP.getZ();
         vR_start.setZ(pZ);
         vL_end.setZ(pZ);
     }else{
         perror("invalid plane angle!");
-    }   
+    }
+
     Voxel vL(vL_start,vL_end);
     Voxel vR(vR_start,vR_end);
 
@@ -88,19 +90,21 @@ TreeNode* recBuild(std::vector<Triangle *> ts,Voxel v){
             tR.push_back(t);
         }
     }
-    return new TreeNode(&planeP,recBuild(tL,vL),recBuild(tR,vR));
+    return new TreeNode(&planeP,&planeN,recBuild(tL,vL),recBuild(tR,vR));
 }
 
 
 void seekPrint(TreeNode* root){
     if(root->isLeaf()){
-        (root->getTriangle())->print();
+        Triangle tri = root->getTriangle()->copy();
+        tri.print();
     }else{
+        Vec3 p=root->getPos()->copy();
+        Vec3 n=root->getNormal()->copy();
+        p.print();
+        n.print();
         seekPrint(root->getLeft());
         seekPrint(root->getRight());
     }
 }
-
-
-
 #endif

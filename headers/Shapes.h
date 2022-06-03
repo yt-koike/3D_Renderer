@@ -163,6 +163,7 @@ public:
     this->v3 = v3;
     setMaterial(mt);
   }
+  Triangle copy(){return Triangle(v1.copy(),v2.copy(),v3.copy());}
   Triangle rotate(Vec3 origin, Vec3 axis, double rad) { return Triangle(v1.rotate(origin, axis, rad), v2.rotate(origin, axis, rad), v3.rotate(origin, axis, rad)); }
   virtual IntersectionPoint testIntersection(Ray r);
   virtual void print()
