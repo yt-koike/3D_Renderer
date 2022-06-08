@@ -29,10 +29,13 @@ void setV(Vec3 V1, Vec3 V2){
     walls[4] = new RectanglePlane(V2,Vec3(x1, y2, z1) );
     walls[5] = new RectanglePlane(V2,Vec3(x1, y1, z2) );
 }
-BoundaryBox(){}
+  BoundaryBox(){}
   BoundaryBox(Vec3 V1, Vec3 V2)
   {
-setV(V1,V2);
+    setV(V1,V2);
+  }
+  void includeV(Vec3 v){
+    setV(startV.min(v),endV.max(v));
   }
   virtual int doesHit(Ray r) {
     for(int i=0;i<6;i++){

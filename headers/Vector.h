@@ -40,6 +40,18 @@ public:
     double cos(Vec3 v) { return dot(v) / mag() / v.mag(); }
     Vec3 normalize() { return mult(1 / mag()); }
     Vec3 rotate(Vec3 origin, Vec3 axis, double rad);
+    Vec3 max(Vec3 v){
+        double newX = (x>v.getX())?x:v.getX();
+        double newY = (y>v.getY())?y:v.getY();
+        double newZ = (z>v.getZ())?z:v.getZ();
+        return Vec3(newX,newY,newZ);
+    }
+    Vec3 min(Vec3 v){
+        double newX = (x<v.getX())?x:v.getX();
+        double newY = (y<v.getY())?y:v.getY();
+        double newZ = (z<v.getZ())?z:v.getZ();
+        return Vec3(newX,newY,newZ);
+    }
     void print() { printf("%f,%f,%f\n", x, y, z); };
 };
 

@@ -11,6 +11,7 @@ class Triangle : public Shape
 {
 private:
   Vec3 v1, v2, v3;
+  BoundaryBox* boundary;
 
 public:
   Triangle(Vec3 v1, Vec3 v2, Vec3 v3)
@@ -18,16 +19,19 @@ public:
     this->v1 = v1;
     this->v2 = v2;
     this->v3 = v3;
+    generateBoundary();
   }
   Triangle(Vec3 v1, Vec3 v2, Vec3 v3, Material mt)
   {
     this->v1 = v1;
     this->v2 = v2;
     this->v3 = v3;
+    generateBoundary();
     setMaterial(mt);
   }
   Triangle copy(){return Triangle(v1.copy(),v2.copy(),v3.copy());}
   Triangle rotate(Vec3 origin, Vec3 axis, double rad) { return Triangle(v1.rotate(origin, axis, rad), v2.rotate(origin, axis, rad), v3.rotate(origin, axis, rad)); }
+  void generateBoundary(){boundary=new BoundaryBox();boundary->includeV(v1);boundary->includeV(v2);boundary->includeV(v3);}
   virtual IntersectionPoint testIntersection(Ray r);
   virtual void print()
   {
@@ -46,11 +50,13 @@ public:
 
 IntersectionPoint Triangle::testIntersection(Ray r)
 {
+  IntersectionPoint cross;
+  if(!boundary->doesHit(r)){return cross;}
   Vec3 a = v2.sub(v1);
   Vec3 b = v3.sub(v1);
   Vec3 normalV = a.cross(b).normalize();
   Plane plane(v1, normalV);
-  IntersectionPoint cross = plane.testIntersection(r);
+  cross = plane.testIntersection(r);
   if (!cross.exists)
     return cross;
   cross.exists = 0;

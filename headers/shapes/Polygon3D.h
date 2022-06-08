@@ -61,38 +61,22 @@ void Polygon3D::addTriangle(Triangle *tri)
   }
 }
 
-double min4(double a,double b,double c,double d){
-  double res = (a<b)?a:b;
-  res = (c<res)?c:res;
-  res = (d<res)?d:res;
-  return res;
-}
-double max4(double a,double b,double c,double d){
-  double res = (a>b)?a:b;
-  res = (c>res)?c:res;
-  res = (d>res)?d:res;
-  return res;  
-}
-
 void Polygon3D::generateBoundary(){
   double minX,minY,minZ,maxX,maxY,maxZ;
   minX = maxX = tris[0]->getV1().getX();
   minY = maxY = tris[0]->getV1().getY();
   minZ = maxZ = tris[0]->getV1().getZ();
+  boundary = new BoundaryBox();
   for (int i = 0; i < size; i++)
   {
     Triangle* tri = tris[i];
     Vec3 v1 = tri->getV1();
+    boundary->includeV(v1);
     Vec3 v2 = tri->getV2();
+    boundary->includeV(v2);
     Vec3 v3 = tri->getV3();
-    minX = min4(minX,v1.getX(),v2.getX(),v3.getX());
-    maxX = max4(maxX,v1.getX(),v2.getX(),v3.getX());
-    minY = min4(minY,v1.getY(),v2.getY(),v3.getY());
-    maxY = max4(maxY,v1.getY(),v2.getY(),v3.getY());
-    minZ = min4(minZ,v1.getZ(),v2.getZ(),v3.getZ());
-    maxZ = max4(maxZ,v1.getZ(),v2.getZ(),v3.getZ());
+    boundary->includeV(v3);
   }
-  boundary = new BoundaryBox(Vec3(minX,minY,minZ),Vec3(maxX,maxY,maxZ));
 }
 
 IntersectionPoint Polygon3D::testIntersection(Ray r)
