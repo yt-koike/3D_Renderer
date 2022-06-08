@@ -2,7 +2,7 @@
 #define SCENE_H
 #include "Vector.h"
 #include "Color.h"
-#include "Shapes.h"
+#include "shapes/Shape.h"
 #include "Array2D.h"
 #include "Ray.h"
 #include <float.h>
@@ -64,6 +64,7 @@ IntersectionTestResult Scene::testIntersectionPointWithAll(Ray ray, double maxDi
   res.intersectionPoint.distance = -1;
   for (int i = 0; i < shapes.size(); i++)
   {
+    if(!shapes[i]->isVisible()) continue;
     IntersectionPoint cross = shapes[i]->testIntersection(ray);
     if (cross.exists && cross.distance <= maxDist)
     {

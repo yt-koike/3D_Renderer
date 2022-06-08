@@ -2,7 +2,7 @@
 #define STL_H
 #include <iostream>
 #include <fstream>
-#include "Shapes.h"
+#include "shapes/ShapeSuite.h"
 
 Polygon3D STLBinLoad(const char *filename)
 {
@@ -36,6 +36,7 @@ Polygon3D STLBinLoad(const char *filename)
         fseek(fp, 2, SEEK_CUR);
     }
     fclose(fp);
+    poly.generateBoundary();
     return poly;
 }
 
@@ -66,6 +67,7 @@ Polygon3D STLload(const char *filename)
         }
     }
     ifs.close();
+    poly.generateBoundary();
     return poly;
 }
 
