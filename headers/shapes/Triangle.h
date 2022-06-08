@@ -29,7 +29,7 @@ public:
     generateBoundary();
     setMaterial(mt);
   }
-  Triangle copy(){return Triangle(v1.copy(),v2.copy(),v3.copy());}
+  Triangle* copy(){return new Triangle(v1.copy(),v2.copy(),v3.copy());}
   Triangle rotate(Vec3 origin, Vec3 axis, double rad) { return Triangle(v1.rotate(origin, axis, rad), v2.rotate(origin, axis, rad), v3.rotate(origin, axis, rad)); }
   void generateBoundary(){boundary=new BoundaryBox();boundary->includeV(v1);boundary->includeV(v2);boundary->includeV(v3);}
   virtual IntersectionPoint testIntersection(Ray r);

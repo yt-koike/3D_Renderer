@@ -12,7 +12,6 @@ public:
     Vec3() { set(0, 0, 0); }
     Vec3(double a) { set(a, a, a); }
     Vec3(double x, double y, double z) { set(x, y, z); }
-    
     double getX() { return x; }
     double getY() { return y; }
     double getZ() { return z; }
@@ -84,7 +83,7 @@ Vec3 Vec3::rotate(Vec3 origin, Vec3 axis, double rad)
     return Vec3(new_x, new_y, new_z).add(origin);
 }
 
-class Vec3m // Vector 3 mutable
+class Vec3m :public Vec3 // Vector 3 mutable
 {
 private:
     double x, y, z;
@@ -108,33 +107,35 @@ public:
     void setZ(double z) { this->z = z; }
     Vec3m copy() { return Vec3m(x, y, z);}
     Vec3 copyImmutable(){return Vec3(x, y, z);}
-    void add(double x, double y, double z) {this->x += x; this->y += y; this->z += z;}
-    void sub(double x, double y, double z) {this->x -= x; this->y -= y; this->z -= z;}
-    void mult(double k) {this->x *= x; this->y *= y; this->z *= z;}
-    void add(Vec3 v) { add(v.getX(),v.getY(),v.getZ()); }
-    void sub(Vec3 v) { sub(v.getX(),v.getY(),v.getZ()); }
-    void mask(Vec3 v) { this->x *= v.getX(); this->y *= y; this->z *= z; }
-    void vecPow(Vec3 v) {this->x=pow(x, v.getX()); this->y=pow(y, v.getY());this->z=pow(z, v.getZ());}
+    Vec3m add(double x, double y, double z) {this->x += x; this->y += y; this->z += z;return *this;}
+    Vec3m sub(double x, double y, double z) {this->x -= x; this->y -= y; this->z -= z;return *this;}
+    Vec3m mult(double k) {this->x *= x; this->y *= y; this->z *= z;return *this;}
+    Vec3m add(Vec3 v) { add(v.getX(),v.getY(),v.getZ()); return *this;}
+    Vec3m sub(Vec3 v) { sub(v.getX(),v.getY(),v.getZ()); return *this;}
+    Vec3m mask(Vec3 v) { this->x *= v.getX(); this->y *= y; this->z *= z; return *this;}
+    Vec3m vecPow(Vec3 v) {this->x=pow(x, v.getX()); this->y=pow(y, v.getY());this->z=pow(z, v.getZ());return *this;}
     double dot(Vec3 v) { return x * v.getX() + y * v.getY() + z * v.getZ(); }
-    void cross(Vec3 v);
+    Vec3m cross(Vec3 v);
     double mag() { return sqrt((long double)x*x + y*y + z*z); }
     double magSq() { return x*x+y*y+z*z; }
     double cos(Vec3 v) { return dot(v) / mag() / v.mag(); }
-    void normalize() { mult(1 / mag()); }
+    Vec3m normalize() { mult(1 / mag()); return *this;}
     Vec3m max(Vec3 v){
         x = (x>v.getX())?x:v.getX();
         y = (y>v.getY())?y:v.getY();
         z = (z>v.getZ())?z:v.getZ();
+        return *this;
     }
     Vec3m min(Vec3 v){
         x = (x<v.getX())?x:v.getX();
         y = (y<v.getY())?y:v.getY();
         z = (z<v.getZ())?z:v.getZ();
+        return *this;
     }
     void print() { printf("%f,%f,%f\n", x, y, z); };
 };
 
-void Vec3m::cross(Vec3 v)
+Vec3m Vec3m::cross(Vec3 v)
 {
     double a1 = getX();
     double a2 = getY();
@@ -145,6 +146,7 @@ void Vec3m::cross(Vec3 v)
     x = a2 * b3 - b2 * a3;
     y = a3 * b1 - b3 * a1;
     z = a1 * b2 - b1 * a2;
+    return *this;
 }
 
 #endif

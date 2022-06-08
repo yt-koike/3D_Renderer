@@ -47,6 +47,13 @@ public:
   }
   void generateBoundary();
   BoundaryBox* getBoundary(){return boundary;}
+  Polygon3D* copy(){
+    Polygon3D* newPoly = new Polygon3D(maxSize);
+    for (int i = 0; i < size; i++)
+      newPoly->addTriangle(tris[i]->copy());
+    newPoly->setBoundary(boundary->copy());
+    return newPoly;
+  }
   void setBoundary(BoundaryBox* boundary){this->boundary = boundary;}
   void addTriangle(Triangle *tri);
   virtual IntersectionPoint testIntersection(Ray r);
@@ -62,20 +69,13 @@ void Polygon3D::addTriangle(Triangle *tri)
 }
 
 void Polygon3D::generateBoundary(){
-  double minX,minY,minZ,maxX,maxY,maxZ;
-  minX = maxX = tris[0]->getV1().getX();
-  minY = maxY = tris[0]->getV1().getY();
-  minZ = maxZ = tris[0]->getV1().getZ();
   boundary = new BoundaryBox();
   for (int i = 0; i < size; i++)
   {
     Triangle* tri = tris[i];
-    Vec3 v1 = tri->getV1();
-    boundary->includeV(v1);
-    Vec3 v2 = tri->getV2();
-    boundary->includeV(v2);
-    Vec3 v3 = tri->getV3();
-    boundary->includeV(v3);
+    boundary->includeV(tri->getV1());
+    boundary->includeV(tri->getV2());
+    boundary->includeV(tri->getV3());
   }
 }
 
