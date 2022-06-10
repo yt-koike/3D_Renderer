@@ -6,6 +6,7 @@
 
 Polygon3D STLBinLoad(const char *filename)
 {
+    // Load binary STL file
     FILE *fp = fopen(filename, "r");
     if(!fp){
         perror("File not found");
@@ -42,6 +43,7 @@ Polygon3D STLBinLoad(const char *filename)
 
 Polygon3D STLload(const char *filename)
 {
+    // Load Ascii STL file
     Polygon3D poly(100);
     std::ifstream ifs;
     ifs.open(filename, std::ios::in);

@@ -4,7 +4,7 @@
 #include "../Color.h"
 #include "../Ray.h"
 #include "../Material.h"
-#include "Shape.h"
+#include "ShapeSuite.h"
 #include "Triangle.h"
 
 class Polygon3D : public Shape

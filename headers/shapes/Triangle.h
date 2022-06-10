@@ -51,7 +51,7 @@ public:
 IntersectionPoint Triangle::testIntersection(Ray r)
 {
   IntersectionPoint cross;
-  if(!boundary->doesHit(r)){return cross;}
+//  if(!boundary->doesHit(r)){return cross;} // Faster to comment out
   Vec3 a = v2.sub(v1);
   Vec3 b = v3.sub(v1);
   Vec3 normalV = a.cross(b).normalize();
@@ -62,7 +62,7 @@ IntersectionPoint Triangle::testIntersection(Ray r)
   cross.exists = 0;
   Vec3 crossPos = cross.position;
   // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution
-  if (v2.sub(v1).cross(crossPos.sub(v1)).dot(normalV) > -0.001 && v3.sub(v2).cross(crossPos.sub(v2)).dot(normalV) > -0.001 && v1.sub(v3).cross(crossPos.sub(v3)).dot(normalV) > -0.001)
+  if (v2.sub(v1).cross(crossPos.sub(v1)).dot(normalV) >= 0 && v3.sub(v2).cross(crossPos.sub(v2)).dot(normalV) >= 0 && v1.sub(v3).cross(crossPos.sub(v3)).dot(normalV) >= 0)
   {
     cross.exists = 1;
   }
