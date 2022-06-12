@@ -1,6 +1,6 @@
 #include <string.h>
 #include <unistd.h>
-#include "headers/Render.h"
+#include "headers/RenderSuite.h"
 #include "headers/PPM.h"
 
 void irfanview(const char *filename)
@@ -48,6 +48,6 @@ int main()
     PPM ppmwriter(img);
     const char *filename = "Refraction.ppm";
     ppmwriter.writePPM(filename);
-    //irfanview(filename);
+   // irfanview(filename);
     return 0;
 }
