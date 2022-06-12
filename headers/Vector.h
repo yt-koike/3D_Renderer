@@ -3,6 +3,24 @@
 #include <stdio.h>
 #include <math.h>
 
+
+float invsqrt( float x )
+{
+    // https://en.wikipedia.org/wiki/Fast_inverse_square_root
+	long i;
+	float x2, y;
+	const float threehalfs = 1.5F;
+
+	x2 = x * 0.5F;
+	y  = x;
+	i  = * ( long * ) &y;                       // evil floating point bit level hacking
+	i  = 0x5f3759df - ( i >> 1 );               // what the fuck? 
+	y  = * ( float * ) &i;
+    for(int i=0;i<1;i++)
+    	y  = y * ( threehalfs - ( x2 * y * y ) );   // iteration
+    //printf("%f",y);
+	return y;
+}
 class Vec3
 {
 private:
@@ -37,7 +55,8 @@ public:
     double mag() { return sqrt((long double)getX() * getX() + getY() * getY() + getZ() * getZ()); }
     double magSq() { return getX() * getX() + getY() * getY() + getZ() * getZ(); }
     double cos(Vec3 v) { return dot(v) / mag() / v.mag(); }
-    Vec3 normalize() { return mult(1 / mag()); }
+//    Vec3 normalize() { /*printf("%f\n",invsqrt(magSq()));*/return mult(invsqrt(magSq())); } // Slower and unstable
+    Vec3 normalize() { return mult(1/mag()); }
     Vec3 rotate(Vec3 origin, Vec3 axis, double rad);
     Vec3 max(Vec3 v){
         double newX = (x>v.getX())?x:v.getX();
