@@ -99,7 +99,7 @@ Color Scene::rayTraceRecursive(Ray ray, int recursionLevel)
       {
         PointLightSource light = *lights[i];
 
-        Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.001));
+        Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.01));
         Vec3 shadowCheckerDir = light.position.sub(shadowCheckerPos);
         Ray shadowChecker(shadowCheckerPos, shadowCheckerDir);
         IntersectionTestResult shadow = testIntersectionPointWithAll(shadowChecker, shadowCheckerDir.mag(), true);
@@ -167,35 +167,4 @@ Color Scene::rayTrace(Ray camera)
 {
   return rayTraceRecursive(camera, 0);
 }
-
-
-/*
-Color Scene::rayTraceSimple(Ray camera)
-{
-  IntersectionTestResult intersection = testIntersectionPointWithAll(camera);
-  if (intersection.intersectionPoint.exists)
-  {
-    IntersectionPoint cross = intersection.intersectionPoint;
-    Shape *shape = intersection.shape;
-    Color color = shape->envLightness(envLight);
-    for (int i = 0; i < lights.size(); i++)
-    {
-      PointLightSource light = *lights[i];
-
-      Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.001));
-      Vec3 shadowCheckerDir = light.position.sub(shadowCheckerPos);
-      Ray shadowChecker(shadowCheckerPos, shadowCheckerDir);
-
-      IntersectionTestResult shadow = testIntersectionPointWithAll(shadowChecker, shadowCheckerDir.mag(), true);
-      if (shadow.intersectionPoint.exists)
-        continue;
-      color = color.add(shape->lightness(cross, camera.getDir(), light));
-    }
-
-    return color.clamp();
-  }else{
-    return background;
-  }
-}
-*/
 #endif

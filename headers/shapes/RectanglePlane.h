@@ -52,7 +52,6 @@ RectanglePlane(Vec3 startP,Vec3 endP){
     if(abs(normalV.getX()*normalV.getY())+abs(normalV.getY()*normalV.getZ())+abs(normalV.getZ()*normalV.getX())>0.001){
         printf("Error: invalid RectanglePlane\n");
     }
-    
 }
 virtual IntersectionPoint testIntersection(Ray r);
 virtual int doesHit(Ray r);

@@ -1,7 +1,8 @@
 #ifndef TD_TREE_H
 #define TD_TREE_H
+#include <stdlib.h>
 #include "Vector.h"
-#include"Shapes.h"
+#include "shapes/ShapeSuite.h"
 #include <vector>
 
 class Voxel{
@@ -33,27 +34,59 @@ class TreeNode{
     Triangle* getTriangle(){return leaf;}
 };
 
+int isBetween(double a,double x,double b){
+    return a<=x && x<=b;
+}
+
 int inVoxel(Vec3 p,Voxel v){
     Vec3 start= v.getStart();
     Vec3 end = v.getEnd();
-    return (start.getX() <= p.getX() && p.getX() <=end.getX()) &&
-    (start.getY() <= p.getY() && p.getY() <=end.getY()) &&
-    (start.getZ() <= p.getZ() && p.getZ() <=end.getZ());
+    return isBetween(start.getX(),p.getX(),end.getX()) &&
+    isBetween(start.getY(),p.getY(),end.getY()) &&
+    isBetween(start.getZ(),p.getZ(),end.getZ());
 }
 
 int inVoxel(Triangle t,Voxel v){
      return inVoxel(t.getV1(),v) || inVoxel(t.getV2(),v) || inVoxel(t.getV3(),v);
 }
 
-Plane findPlane(std::vector<Triangle *> ts,Voxel v){
-    return Plane(Vec3(0,0,5),Vec3(0,0,1));
+int compare_double(const void *a, const void *b)
+{
+    return *(double*)a - *(double*)b;
 }
 
-TreeNode* recBuild(std::vector<Triangle *> ts,Voxel v){
+Plane findPlane(const int depth,std::vector<Triangle *> ts,Voxel v){
+    Vec3 N;
+    switch (depth%3)
+    {
+        case 0:
+        N.set(1,0,0);
+        break;
+        case 1:
+        N.set(0,1,0);
+        break;
+        case 2:
+        N.set(0,0,1);
+        break;
+    }
+    Vec3 pos;
+    double* ary = new double[3*ts.size()];
+    for(int i=0;i<ts.size();i++){
+        ary[3*i+0] = ts[i]->getV1().dot(N);
+        ary[3*i+1] = ts[i]->getV2().dot(N);
+        ary[3*i+2] = ts[i]->getV3().dot(N);
+    }
+    qsort(ary,3*ts.size(),sizeof(double),compare_double);
+    
+    delete ary;
+    return Plane(pos,N);
+}
+
+TreeNode* recBuild(const int depth,std::vector<Triangle *> ts,Voxel v){
     if (ts.size() == 1){
         return new TreeNode(ts[0]);
     }
-    Plane p = findPlane(ts,v);
+    Plane p = findPlane(0,ts,v);
     Vec3 planeP = p.getPointV();
     Vec3 planeN = p.getNormalV();
 
@@ -90,14 +123,14 @@ TreeNode* recBuild(std::vector<Triangle *> ts,Voxel v){
             tR.push_back(t);
         }
     }
-    return new TreeNode(&planeP,&planeN,recBuild(tL,vL),recBuild(tR,vR));
+    return new TreeNode(&planeP,&planeN,recBuild(depth+1,tL,vL),recBuild(depth+1,tR,vR));
 }
 
 
 void seekPrint(TreeNode* root){
     if(root->isLeaf()){
-        Triangle tri = root->getTriangle()->copy();
-        tri.print();
+        Triangle* tri = root->getTriangle();
+        tri->print();
     }else{
         Vec3 p=root->getPos()->copy();
         Vec3 n=root->getNormal()->copy();
