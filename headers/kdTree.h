@@ -35,6 +35,7 @@ class TreeNode{
     Vec3* getLeaf(){return leaf;}
     void setOnPlane(std::vector<Vec3*> vs){onPlane=vs;}
     std::vector<Vec3*> getOnPlane(){return onPlane;}
+    TreeNode* copy(){if(isLeaf()){return new TreeNode(leaf);}else{return new TreeNode(pos,normal,left,right);}}
 };
 
 int isBetween(double a,double x,double b){
