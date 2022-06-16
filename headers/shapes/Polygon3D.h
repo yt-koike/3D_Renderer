@@ -15,6 +15,7 @@ private:
   int maxSize = 0;
   Triangle **tris;
   BoundaryBox *boundary;
+  TreeNode* kdTree;
 
 public:
   Polygon3D(int maxSize)
@@ -73,6 +74,7 @@ public:
     }
     return -1;
   }
+  TreeNode* getKdTree(){return kdTree;}
   TreeNode* buildKdTree(){
     std::vector<Vec3 *> v;
     for (int i = 0; i < size; i++)
@@ -86,8 +88,7 @@ public:
         v.push_back(tri->getV3p());
     }
     Voxel vox(boundary->getStartV(), boundary->getEndV());
-    TreeNode *root = (TreeNode *)recBuild(0, v, vox);
-    return root;
+    kdTree = (TreeNode *)recBuild(0, v, vox);
   }
 };
 

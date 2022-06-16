@@ -39,6 +39,7 @@ Polygon3D STLBinLoad(const char *filename)
     }
     fclose(fp);
     poly.generateBoundary();
+    poly.buildKdTree();
     return poly;
 }
 
