@@ -42,6 +42,7 @@ public:
     void setX(double x) { this->x = x; }
     void setY(double y) { this->y = y; }
     void setZ(double z) { this->z = z; }
+    int equals(Vec3 v){return sub(v).magSq()==0;}
     Vec3 copy() { return Vec3(this->getX(), this->getY(), this->getZ()); }
     Vec3 add(double x, double y, double z) { return Vec3(this->getX() + x, this->getY() + y, this->getZ() + z); }
     Vec3 sub(double x, double y, double z) { return Vec3(this->getX() - x, this->getY() - y, this->getZ() - z); }

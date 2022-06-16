@@ -2,6 +2,7 @@
 #define STL_H
 #include <iostream>
 #include <fstream>
+#include <string.h>
 #include "shapes/ShapeSuite.h"
 
 Polygon3D STLBinLoad(const char *filename)
@@ -44,7 +45,7 @@ Polygon3D STLBinLoad(const char *filename)
 Polygon3D STLload(const char *filename)
 {
     // Load Ascii STL file
-    Polygon3D poly(100);
+    Polygon3D poly(1000);
     std::ifstream ifs;
     ifs.open(filename, std::ios::in);
     if (ifs.fail())

@@ -6,6 +6,7 @@
 #include "../Material.h"
 #include "Shape.h"
 #include "Plane.h"
+#include "BoundaryBox.h"
 
 class Triangle : public Shape
 {
@@ -46,6 +47,9 @@ public:
   Vec3 getV1(){return v1;}
   Vec3 getV2(){return v2;}
   Vec3 getV3(){return v3;}
+  Vec3* getV1p(){return &v1;}
+  Vec3* getV2p(){return &v2;}
+  Vec3* getV3p(){return &v3;}
 };
 
 IntersectionPoint Triangle::testIntersection(Ray r)
