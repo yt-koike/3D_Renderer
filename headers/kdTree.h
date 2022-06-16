@@ -116,8 +116,12 @@ TreeNode* recBuild(const int depth,std::vector<Triangle *> ts,Voxel v){
     Voxel vR(vR_start,vR_end);
 
     std::vector<Triangle *> tL,tR;
+    double center = planeP.dot(planeN);
     for(int i=0;i<ts.size();i++){
         Triangle* t = ts[i];
+        if(t->getV1().dot(planeN) == center) continue;
+        if(t->getV2().dot(planeN) == center) continue;
+        if(t->getV3().dot(planeN) == center) continue;
         if(inVoxel(*t,vL)){
             tL.push_back(t);
         }
