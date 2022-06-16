@@ -33,7 +33,7 @@ public:
   virtual int doesHit(Ray r);
   virtual void print()
   {
-    printf("Sphere:\n point:");
+    printf("Plane:\n point:");
     pointV.print();
     printf(" normalV:");
     normalV.print();

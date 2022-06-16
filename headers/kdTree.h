@@ -77,7 +77,8 @@ Plane findPlane(const int depth,std::vector<Triangle *> ts,Voxel v){
         ary[3*i+2] = ts[i]->getV3().dot(N);
     }
     qsort(ary,3*ts.size(),sizeof(double),compare_double);
-    
+    double center = ary[3*ts.size()/2];
+    pos = N.mult(center);
     delete ary;
     return Plane(pos,N);
 }
@@ -87,6 +88,7 @@ TreeNode* recBuild(const int depth,std::vector<Triangle *> ts,Voxel v){
         return new TreeNode(ts[0]);
     }
     Plane p = findPlane(0,ts,v);
+    p.print();
     Vec3 planeP = p.getPointV();
     Vec3 planeN = p.getNormalV();
 
