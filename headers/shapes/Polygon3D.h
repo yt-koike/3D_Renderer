@@ -75,7 +75,9 @@ public:
     return -1;
   }
   TreeNode* getKdTree(){return kdTree;}
-  TreeNode* buildKdTree(){
+  void setKdTree(TreeNode* root){kdTree=root;}
+  void buildKdTree(){
+    printf("Building KdTree\n");
     std::vector<Vec3 *> v;
     for (int i = 0; i < size; i++)
     {
@@ -87,8 +89,9 @@ public:
       if (find(v, tri->getV3()) == -1)
         v.push_back(tri->getV3p());
     }
-    Voxel vox(boundary->getStartV(), boundary->getEndV());
-    kdTree = (TreeNode *)recBuild(0, v, vox);
+    Voxel vox(boundary->getStartV().sub(Vec3(1)), boundary->getEndV().add(Vec3(1)));
+    TreeNode* root = recBuild(0, v, vox);
+    setKdTree(root);
   }
 };
 
@@ -115,9 +118,18 @@ void Polygon3D::generateBoundary()
 
 IntersectionPoint Polygon3D::testIntersection(Ray r)
 {
+  IntersectionPoint boundaryCross = boundary->testIntersection(r);
   IntersectionPoint cross;
-  if (!boundary->doesHit(r))
-    return cross;
+  if (!boundaryCross.exists)return cross;
+/*
+  boundaryCross.position.print();
+  std::vector<Vec3*> li;
+  li = getKdTree()->search(boundaryCross.position,4,li);
+  for(int i=0;i<li.size();i++){
+    li[i]->print();
+  }
+    */
+  //std::vector<Vec3*> li = getKdTree()->search(boundaryCross.position,4,li);
   int closestId = -1;
   double closestDistance = -1;
   for (int i = 0; i < size; i++)
