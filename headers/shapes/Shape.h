@@ -17,8 +17,7 @@ public:
   void setMaterial(Material mt) { this->mt = mt; }
   int isVisible(){return visible;}
   void setVisible(int flag){visible=flag;}
-  virtual IntersectionPoint testIntersection(Ray r) {}
-  virtual int doesHit(Ray r) {}
+  virtual IntersectionPoint testIntersection(Ray r){IntersectionPoint cross;return cross;}
   virtual void print() { printf("Null shape"); }
   Color envLightness(Color envRayIntensity);
   Color lightness(IntersectionPoint cross, Vec3 cameraDir, PointLightSource light);

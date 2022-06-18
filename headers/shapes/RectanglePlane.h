@@ -53,9 +53,9 @@ RectanglePlane(Vec3 startP,Vec3 endP){
         printf("Error: invalid RectanglePlane\n");
     }
 }
-virtual IntersectionPoint testIntersection(Ray r);
-virtual int doesHit(Ray r);
-virtual void print() { printf("Rectangle"); }
+IntersectionPoint testIntersection(Ray r);
+int doesHit(Ray r);
+void print() { printf("Rectangle"); }
 };
 
 int RectanglePlane::doesHit(Ray r){
@@ -67,7 +67,6 @@ int RectanglePlane::doesHit(Ray r){
     if(!isBetween(startP.getY(),y,endP.getY()))return 0;
     double z = r.getDir().getZ()*t + r.getPoint().getZ();
     if(!isBetween(startP.getZ(),z,endP.getZ()))return 0; 
-    return 1; 
   }else if (normalV.getY()==1){
     if(r.getDir().getY()==0)return 0;
     double t = startP.sub(r.getPoint()).getY()/r.getDir().getY();
@@ -76,7 +75,6 @@ int RectanglePlane::doesHit(Ray r){
     if(!isBetween(startP.getX(),x,endP.getX()))return 0;
     double z = r.getDir().getZ()*t + r.getPoint().getZ();
     if(!isBetween(startP.getZ(),z,endP.getZ()))return 0; 
-    return 1; 
   }else if (normalV.getZ()==1){
     if(r.getDir().getZ()==0)return 0;
     double t = startP.sub(r.getPoint()).getZ()/r.getDir().getZ();
@@ -85,8 +83,8 @@ int RectanglePlane::doesHit(Ray r){
     if(!isBetween(startP.getX(),x,endP.getX()))return 0;
     double y = r.getDir().getY()*t + r.getPoint().getY();
     if(!isBetween(startP.getY(),y,endP.getY()))return 0;
-    return 1; 
   }
+  return 1; 
 }
 
 IntersectionPoint RectanglePlane::testIntersection(Ray r)

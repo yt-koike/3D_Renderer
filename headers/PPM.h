@@ -69,6 +69,7 @@ int PPM::readPPM(const char* filename){
     }
   }
   ifs.close();
+  return 0;
 }
 
 int PPM::writePPM(const char* filename){

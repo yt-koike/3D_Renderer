@@ -25,12 +25,11 @@ public:
   }
   Vec3 getPointV() { return pointV; }
   Vec3 getNormalV() { return normalV; }
-  Vec3 setPointV(Vec3 v) { this->pointV = v; }
-  Vec3 setNormalV(Vec3 v) { this->normalV = v.normalize(); }
+  void setPointV(Vec3 v) { this->pointV = v; }
+  void setNormalV(Vec3 v) { this->normalV = v.normalize(); }
   int isCross(Vec3 s, Vec3 d);
   Vec3 firstCross(Vec3 s, Vec3 d);
-  virtual IntersectionPoint testIntersection(Ray r);
-  virtual int doesHit(Ray r);
+  IntersectionPoint testIntersection(Ray r);
   virtual void print()
   {
     printf("Plane:\n point:");
@@ -40,9 +39,6 @@ public:
   }
 };
 
-int Plane::doesHit(Ray r){
-  
-}
 
 IntersectionPoint Plane::testIntersection(Ray r)
 {

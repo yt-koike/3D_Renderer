@@ -16,21 +16,22 @@ Polygon3D STLBinLoad(const char *filename)
     int *null;
     fseek(fp, 80, SEEK_SET);
     unsigned int n;
-    fread(&n, sizeof(unsigned int), 1, fp);
+    size_t ret;
+    ret = fread(&n, sizeof(unsigned int), 1, fp);
     printf("File %s has %d triangles.\n", filename,n);
     Polygon3D poly(n);
     Vec3* vertexes[3];
     while (n--)
     {
-        fread(&x, sizeof(float), 1, fp);
-        fread(&y, sizeof(float), 1, fp);
-        fread(&z, sizeof(float), 1, fp);
+        ret = fread(&x, sizeof(float), 1, fp);
+        ret = fread(&y, sizeof(float), 1, fp);
+        ret = fread(&z, sizeof(float), 1, fp);
         Vec3 normalV(x,y,z);
         for (int i = 0; i < 3; i++)
         {
-            fread(&x, sizeof(float), 1, fp);
-            fread(&y, sizeof(float), 1, fp);
-            fread(&z, sizeof(float), 1, fp);
+            ret = fread(&x, sizeof(float), 1, fp);
+            ret = fread(&y, sizeof(float), 1, fp);
+            ret = fread(&z, sizeof(float), 1, fp);
             vertexes[i] = new Vec3(x, y, z);
         }
         Triangle* tri = new Triangle(*vertexes[0],*vertexes[1],*vertexes[2]);
@@ -63,7 +64,7 @@ Polygon3D STLload(const char *filename)
             {
                 ifs.getline(str, buf_size);
                 double x, y, z;
-                sscanf(str + 10, "%d%d%d", &x, &y, &z);
+                sscanf(str + 10, "%le%le%le", &x, &y, &z);
                 std::cout << str + 10 << std::endl;
                 printf("%f,%f,%f\n", x, y, z);
             }

@@ -12,7 +12,7 @@ class Triangle : public Shape
 {
 private:
   Vec3 v1, v2, v3;
-  Vec3 E0,E1;
+  Vec3 E0, E1;
   Vec3 normalV;
   BoundaryBox *boundary;
 
@@ -47,8 +47,8 @@ public:
     boundary->includeV(v2);
     boundary->includeV(v3);
   }
-  virtual IntersectionPoint testIntersection(Ray r);
-  virtual void print()
+  IntersectionPoint testIntersection(Ray r);
+  void print()
   {
     printf("Triangle:\n");
     v1.print();
@@ -69,33 +69,35 @@ public:
 
 IntersectionPoint Triangle::testIntersection(Ray r)
 {
-//  if(!boundary->doesHit(r)){return cross;} // Faster to comment out
-/*
-  IntersectionPoint cross;
-  Plane plane(v1, normalV);
-  cross = plane.testIntersection(r);
-  if (!cross.exists)
+  //  if(!boundary->doesHit(r)){return cross;} // Faster to comment out
+  /*
+    IntersectionPoint cross;
+    Plane plane(v1, normalV);
+    cross = plane.testIntersection(r);
+    if (!cross.exists)
+      return cross;
+    cross.exists = 0;
+    Vec3 crossPos = cross.position;
+    // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution
+    if (v2.sub(v1).cross(crossPos.sub(v1)).dot(normalV) >= 0 && v3.sub(v2).cross(crossPos.sub(v2)).dot(normalV) >= 0 && v1.sub(v3).cross(crossPos.sub(v3)).dot(normalV) >= 0)
+    {
+      cross.exists = 1;
+    }
     return cross;
-  cross.exists = 0;
-  Vec3 crossPos = cross.position;
-  // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution
-  if (v2.sub(v1).cross(crossPos.sub(v1)).dot(normalV) >= 0 && v3.sub(v2).cross(crossPos.sub(v2)).dot(normalV) >= 0 && v1.sub(v3).cross(crossPos.sub(v3)).dot(normalV) >= 0)
-  {
-    cross.exists = 1;
-  }
-  return cross;
-*/
+  */
   // https://dc.ewu.edu/cgi/viewcontent.cgi?article=1093&context=theses
+  
   Vec3 D = r.getDir();
   Vec3 T = r.getPoint().sub(v1);
   Vec3 P = D.cross(E1);
   Vec3 Q = T.cross(E0);
   double deno = P.dot(E0);
-  double distance = Q.dot(E1) / deno;
-  double u = P.dot(T)/deno;
-  double v = Q.dot(D)/deno;
+  double u = P.dot(T) / deno;
+  double v = Q.dot(D) / deno;
   IntersectionPoint cross;
-  if(!(u>=0&&v>=0&&u+v<=1))return cross;
+  if (!(u >= 0 && v >= 0 && u + v <= 1))
+    return cross;
+  double distance = Q.dot(E1) / deno;
   if (distance < 0)
     return cross;
   cross.exists = 1;

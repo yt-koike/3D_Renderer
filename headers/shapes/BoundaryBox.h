@@ -44,8 +44,8 @@ void setV(Vec3 V1, Vec3 V2){
     return 0;
   }
   BoundaryBox* copy(){return new BoundaryBox(startV,endV);}
-  virtual IntersectionPoint testIntersection(Ray r);
-  virtual void print(){printf("Boundary box\n");startV.print();endV.print();};
+  IntersectionPoint testIntersection(Ray r);
+  void print(){printf("Boundary box\n");startV.print();endV.print();};
 };
 
 

@@ -16,8 +16,8 @@ public:
   Sphere(){};
   Sphere(Vec3 c, double r, Material mt);
   Vec3 getCenter() { return center; }
-  virtual IntersectionPoint testIntersection(Ray r);
-  virtual void print()
+  IntersectionPoint testIntersection(Ray r);
+  void print()
   {
     printf("Sphere:\n Pos:");
     center.print();

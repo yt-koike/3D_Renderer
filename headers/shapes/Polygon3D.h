@@ -67,7 +67,7 @@ public:
     *n = size;
     return tris;
   }
-  virtual IntersectionPoint testIntersection(Ray r);
+  IntersectionPoint testIntersection(Ray r);
   int find(std::vector<Vec3 *> vs,Vec3 v){
     for(int i=0;i<vs.size();i++){
         if(vs[i]->equals(v))return i;
