@@ -208,7 +208,7 @@ inline int ceil(double x, double deno)
   return div + (x > div * deno);
 }
 
-__host__ IntersectionPoint PolyIntersection_GPU(int triN, Triangle **tris, Ray r)
+__host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs, IntersectionPoint* result)
 {
   Vec3Simple *v1, *v2, *v3;
   Vec3Simple *d_v1, *d_v2, *d_v3;
@@ -225,6 +225,7 @@ __host__ IntersectionPoint PolyIntersection_GPU(int triN, Triangle **tris, Ray r
   v1 = (Vec3Simple *)malloc(size);
   v2 = (Vec3Simple *)malloc(size);
   v3 = (Vec3Simple *)malloc(size);
+  double *distance = (double *)malloc(triN * sizeof(double));
 
   // generate numbers
   for (int i = 0; i < triN; i++)
@@ -237,47 +238,52 @@ __host__ IntersectionPoint PolyIntersection_GPU(int triN, Triangle **tris, Ray r
   cudaMemcpy(d_v1, v1, size, cudaMemcpyHostToDevice);
   cudaMemcpy(d_v2, v2, size, cudaMemcpyHostToDevice);
   cudaMemcpy(d_v3, v3, size, cudaMemcpyHostToDevice);
-  Vec3Simple simple_dir = simplize(r.getDir());
-  Vec3Simple simple_pos = simplize(r.getPoint());
-  cudaMemcpyToSymbol(ray_dir, &simple_dir, sizeof(Vec3Simple));
-  cudaMemcpyToSymbol(ray_pos, &simple_pos, sizeof(Vec3Simple));
-  dim3 block(3, 1, 1);
-  dim3 grid(ceil(triN, block.x), 1, 1);
-  triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance);
-  double *distance = (double *)malloc(triN * sizeof(double));
-  cudaMemcpy(distance, d_distance, triN * sizeof(double), cudaMemcpyDeviceToHost);
+
+  for (int rayIdx = 0; rayIdx < rayN; rayIdx++)
+  {
+    Ray r = rs[rayIdx];
+    Vec3Simple simple_dir = simplize(r.getDir());
+    Vec3Simple simple_pos = simplize(r.getPoint());
+    cudaMemcpyToSymbol(ray_dir, &simple_dir, sizeof(Vec3Simple));
+    cudaMemcpyToSymbol(ray_pos, &simple_pos, sizeof(Vec3Simple));
+    dim3 block(3, 1, 1);
+    dim3 grid(ceil(triN, block.x), 1, 1);
+    triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance);
+    cudaMemcpy(distance, d_distance, triN * sizeof(double), cudaMemcpyDeviceToHost);
+    int triIdx = -1;
+    int foundFlag = 0;
+    double minDistance;
+    for (int i = 0; i < triN; i++)
+    {
+      double d = distance[i];
+      if (d < 0)
+        continue;
+      if (!foundFlag || d < minDistance)
+      {
+        triIdx = i;
+        minDistance = d;
+        foundFlag = 1;
+      }
+    }
+    IntersectionPoint cross;
+    if (triIdx >= 0)
+    {
+      cross.exists = 1;
+      cross.distance = minDistance;
+      cross.normal = tris[triIdx]->getNormalV();
+      cross.position = r.getDir().mult(minDistance).add(r.getPoint());
+    }
+    result[rayIdx] = cross;
+  }
   free(v1);
   free(v2);
   free(v3);
+  free(distance);
   cudaFree(d_v1);
   cudaFree(d_v2);
   cudaFree(d_v3);
   cudaFree(d_distance);
-
-  int triIdx = -1;
-  int foundFlag = 0;
-  double minDistance;
-  for (int i = 0; i < triN; i++)
-  {
-    double d = distance[i];
-    if (d < 0)
-      continue;
-    if (!foundFlag || d < minDistance)
-    {
-      triIdx = i;
-      minDistance = d;
-      foundFlag = 1;
-    }
-  }
-  free(distance);
-  IntersectionPoint cross;
-  if (triIdx == -1)
-    return cross;
-  cross.exists = 1;
-  cross.distance = minDistance;
-  cross.normal = tris[triIdx]->getNormalV();
-  cross.position = r.getDir().mult(minDistance).add(r.getPoint());
-  return cross;
+  return;
 }
 
 IntersectionPoint Polygon3D::testIntersection(Ray r)
@@ -286,9 +292,9 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   IntersectionPoint cross;
   if (!boundaryCross.exists)
     return cross;
-//  clock_t st, ed;  st = clock();
-  cross = PolyIntersection_GPU(size, tris, r);
-//  ed = clock();  printf("%f\n", (double)(ed - st) / CLOCKS_PER_SEC);
+  //  clock_t st, ed;  st = clock();
+  PolyIntersection_GPU(size, tris, 1, &r,&cross);
+  //  ed = clock();  printf("%f\n", (double)(ed - st) / CLOCKS_PER_SEC);
   return cross;
 }
 #endif
@@ -300,7 +306,7 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   IntersectionPoint cross;
   if (!boundaryCross.exists)
     return cross;
-//  clock_t st, ed;st = clock();
+  //  clock_t st, ed;st = clock();
   int closestId = -1;
   double closestDistance = -1;
   for (int i = 0; i < size; i++)
@@ -320,7 +326,7 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
       }
     }
   }
-//  ed = clock();printf("%f\n", (double)(ed - st) / CLOCKS_PER_SEC);
+  //  ed = clock();printf("%f\n", (double)(ed - st) / CLOCKS_PER_SEC);
   if (closestId != -1)
   {
     return tris[closestId]->testIntersection(r);
