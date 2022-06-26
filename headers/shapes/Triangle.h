@@ -59,6 +59,7 @@ public:
   {
     return Triangle(v1.add(dV), v2.add(dV), v3.add(dV));
   }
+  Vec3 getNormalV(){ return normalV; }
   Vec3 getV1() { return v1; }
   Vec3 getV2() { return v2; }
   Vec3 getV3() { return v3; }
