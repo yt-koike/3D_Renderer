@@ -242,7 +242,7 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
     cudaMemcpy(d_v2, v2, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_v3, v3, size, cudaMemcpyHostToDevice);
 
-        clock_t st,ed;
+
     for (int rayIdx = 0; rayIdx < rayN; rayIdx++)
     {
         Ray r = rs[rayIdx];
@@ -253,10 +253,7 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
         cudaMemcpyToSymbol(ray_pos, &simple_pos, sizeof(Vec3Simple));
         dim3 block(512, 1, 1);
         dim3 grid(ceil(triN, block.x), 1, 1);
-        //st = clock();
         triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance);
-        //ed = clock();
-        //printf("GPU: %f\n",(double)(ed-st)/CLOCKS_PER_SEC);
         cudaMemcpy(distance, d_distance, triN * sizeof(double), cudaMemcpyDeviceToHost);
         int triIdx = -1;
         int foundFlag = 0;

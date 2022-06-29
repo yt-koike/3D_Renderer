@@ -59,10 +59,15 @@ ColorImage Scene::draw(int width, int height)
   }
 
   IntersectionPoint *res = new IntersectionPoint[rayN];
+  int* shapeId = new int[rayN];
   IntersectionPoint *tmp = new IntersectionPoint[rayN];
   for (int i = 0; i < shapes.size(); i++)
   {
+    clock_t st, ed;
+    st = clock();
     shapes[i]->testIntersections(rayN, rs, tmp);
+    ed = clock();
+    printf("Object %d: %f s\n", i, (double)(ed - st) / CLOCKS_PER_SEC);
     for (int j = 0; j < rayN; j++)
     {
       if (tmp[j].exists)
@@ -70,6 +75,7 @@ ColorImage Scene::draw(int width, int height)
         if (!res[j].exists || tmp[j].distance < res[j].distance)
         {
           res[j] = tmp[j];
+          shapeId[j] = i;
         }
       }
     }
@@ -83,7 +89,7 @@ ColorImage Scene::draw(int width, int height)
       int rayIdx = y * width + x;
       Ray r = rs[rayIdx];
       IntersectionPoint cross = res[rayIdx];
-      Shape *s = shapes[0];
+      Shape *s = shapes[shapeId[rayIdx]];
       if (cross.exists)
       {
         for (int i = 0; i < lights.size(); i++)
