@@ -37,6 +37,7 @@ public:
   void add(Shape *s) { shapes.push_back(s); }
   void addLight(PointLightSource *light) { lights.push_back(light); }
   ColorImage draw(int width, int height);
+  void testIntersectionsPointWithAll(int rayN, Ray *rs, double maxDist, bool exitOnceFound, IntersectionTestResult *result);
   IntersectionTestResult testIntersectionPointWithAll(Ray ray) { return testIntersectionPointWithAll(ray, __DBL_MAX__, false); }
   IntersectionTestResult testIntersectionPointWithAll(Ray ray, double maxDist, bool exitOnceFound);
   Color rayTrace(Ray camera);
@@ -46,44 +47,60 @@ public:
 ColorImage Scene::draw(int width, int height)
 {
   ColorImage img(width, height);
-  int rayN = width*height;
-  Ray* rs = new Ray[rayN];
-    for (double y = 0; y < height; y++)
-  {
-    for (double x = 0; x < width; x++)
-    {
-      Ray r(camera.getPoint(), camera.getDir().add(Vec3(x / width - 0.5, -y / height + 0.5, 0).mult(0.5)));
-      rs[(int)(y*width+x)] = r;
-    }
-  }
-  IntersectionPoint* result = new IntersectionPoint[rayN];
-  IntersectionPoint* tmp = new IntersectionPoint[rayN];
-  IntersectionPoint notExists;
-  for(int i=0;i<rayN;i++){
-    result[i] = notExists;
-  }
-  for(int i=0;i<shapes.size();i++){
-  shapes[i]->testIntersections(rayN,rs,tmp);
-  for(int j=0;j<rayN;j++){
-    if(tmp[j].exists){
-    if(!result[j].exists || tmp[j].distance < result[j].distance){
-      result[j] = tmp[j];
-    }
-    }
-  }
-  }
-  
+  int rayN = width * height;
+  Ray *rs = new Ray[rayN];
   for (double y = 0; y < height; y++)
   {
     for (double x = 0; x < width; x++)
     {
-      Ray ray(camera.getPoint(), camera.getDir().add(Vec3(x / width - 0.5, -y / height + 0.5, 0).mult(0.5)));
-      //Color c = rayTrace(ray);
-      Color c = (result[(int)(y*width+x)].exists)?Vec3(255):background;
+      Ray r(camera.getPoint(), camera.getDir().add(Vec3(x / width - 0.5, -y / height + 0.5, 0).mult(0.5)));
+      rs[(int)(y * width + x)] = r;
+    }
+  }
+
+  IntersectionPoint *res = new IntersectionPoint[rayN];
+  IntersectionPoint *tmp = new IntersectionPoint[rayN];
+  for (int i = 0; i < shapes.size(); i++)
+  {
+    shapes[i]->testIntersections(rayN, rs, tmp);
+    for (int j = 0; j < rayN; j++)
+    {
+      if (tmp[j].exists)
+      {
+        if (!res[j].exists || tmp[j].distance < res[j].distance)
+        {
+          res[j] = tmp[j];
+        }
+      }
+    }
+  }
+  delete tmp;
+  for (double y = 0; y < height; y++)
+  {
+    for (double x = 0; x < width; x++)
+    {
+      Color c(0);
+      int rayIdx = y * width + x;
+      Ray r = rs[rayIdx];
+      IntersectionPoint cross = res[rayIdx];
+      Shape *s = shapes[0];
+      if (cross.exists)
+      {
+        for (int i = 0; i < lights.size(); i++)
+        {
+          c = c.add(s->lightness(cross, r.getDir(), *lights[i]));
+        }
+      }
+      else
+      {
+        c = background;
+      }
+      //      Color c = rayTrace(ray);
+      // Color c = (result[(int)(y*width+x)].exists)?Vec3(255):background;
       img.set(x, y, c.getR(), c.getG(), c.getB());
     }
   }
-  
+
   return img;
 }
 
@@ -93,7 +110,8 @@ IntersectionTestResult Scene::testIntersectionPointWithAll(Ray ray, double maxDi
   res.intersectionPoint.distance = -1;
   for (int i = 0; i < shapes.size(); i++)
   {
-    if(!shapes[i]->isVisible()) continue;
+    if (!shapes[i]->isVisible())
+      continue;
     IntersectionPoint cross = shapes[i]->testIntersection(ray);
     if (cross.exists && cross.distance <= maxDist)
     {
@@ -160,7 +178,7 @@ Color Scene::rayTraceRecursive(Ray ray, int recursionLevel)
           {
             mu1 = mt.getRefractionIndex();
             mu2 = globalRefractionIndex;
-            n=n.mult(-1);
+            n = n.mult(-1);
           }
           double muR = mu2 / mu1;
           double cos1 = v.dot(n);
@@ -168,18 +186,18 @@ Color Scene::rayTraceRecursive(Ray ray, int recursionLevel)
           double omega = muR * cos2 - cos1;
           double rouParallel = (muR * cos1 - cos2) / (muR * cos1 + cos2);
           double rouVertical = omega / (muR * cos2 + cos1);
-          double Cr = (rouParallel * rouParallel + rouVertical * rouVertical)/2;
-          Vec3 refractionDir = (ray.getDir().sub(n.mult(omega))).mult(mu1/mu2);
+          double Cr = (rouParallel * rouParallel + rouVertical * rouVertical) / 2;
+          Vec3 refractionDir = (ray.getDir().sub(n.mult(omega))).mult(mu1 / mu2);
           Vec3 refractionPos = cross.position.add(refractionDir.mult(0.01));
-          Ray refractionRay(refractionPos,refractionDir);
-          Color refraction = rayTraceRecursive(refractionRay,recursionLevel+1);
+          Ray refractionRay(refractionPos, refractionDir);
+          Color refraction = rayTraceRecursive(refractionRay, recursionLevel + 1);
           catadioptricColor = reflect.mult(Cr).add(refraction.mult(1 - Cr));
         }
         else
         {
           catadioptricColor = reflect;
         }
-          color = color.add(catadioptricColor.mask(catadioptricFactor));
+        color = color.add(catadioptricColor.mask(catadioptricFactor));
       }
 
       return color.clamp();
