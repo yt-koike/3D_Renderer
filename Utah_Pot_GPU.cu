@@ -1,26 +1,34 @@
-//#define GPU_MODE
+#define GPU_MODE
 #include<stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include "headers/RenderSuite.h"
 #include "headers/PPM.h"
 #include "headers/STL.h"
-void irfanview(const char *filename)
-{
-    const char *irfanPath = "C:\\Software\\IrfanView\\i_view64.exe";
-    char directory[128] = "D:\\GoogleDrive\\3年春\\プロジェクト(小池)\\C++\\Renderer\\";
-    execl(irfanPath, irfanPath, strcat(directory, filename));
-}
 
 int main(int argn,char** argv)
 {
     Ray camera(Vec3(0, 0, -50), Vec3(0, 0,1));
     Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237));
     // load cube from file
-    Material coneMt(Color(Vec3(0.1)), Color(Vec3(0.69)), Color(Vec3(0.3)), Vec3(8));
-    Polygon3D pot = STLBinLoad("STL/Utah_teapot.stl").move(Vec3(0,0,5));
-    pot.setMaterial(coneMt);
-    scene.add(&pot);
+    Material whiteMt(Color(Vec3(0.1)), Color(Vec3(0.69)), Color(Vec3(0.3)), Vec3(8));
+Material redMt(Color(Vec3(0.1)), Color(Vec3(0.69,0,0)), Color(Vec3(0.3,0,0)), Vec3(8));
+Material greenMt(Color(Vec3(0.1)), Color(Vec3(0,0.69,0)), Color(Vec3(0,0.3,0)), Vec3(8));
+Material blueMt(Color(Vec3(0.1)), Color(Vec3(0,0,0.69)), Color(Vec3(0,0,0.3)), Vec3(8));
+    Polygon3D pot1 = STLBinLoad("STL/Utah_teapot.stl").move(Vec3(0,0,5));
+    pot1.setMaterial(whiteMt);
+    scene.add(&pot1);
+    /*
+    Polygon3D pot1 = STLBinLoad("STL/Utah_teapot.stl").move(Vec3(-3,0,5));
+    pot1.setMaterial(whiteMt);
+    scene.add(&pot1);
+    Polygon3D pot2 = pot1.copy()->move(Vec3(5,1,5));
+    pot2.setMaterial(greenMt);
+    scene.add(&pot2);
+    Polygon3D pot3 = pot2.copy()->move(Vec3(5,1,5));
+    pot3.setMaterial(blueMt);
+    scene.add(&pot3);
+    */
     printf("Load Complete.\n");
 
     scene.add(new Plane(Vec3(0,-1,0),Vec3(0,1,0)));
@@ -51,6 +59,6 @@ int main(int argn,char** argv)
     sprintf(filename, "Utah_Pot_GPU.ppm");
     ppmwriter.import(img);
     ppmwriter.writePPM(filename);
-   // irfanview(filename);
+
     return 0;
 }

@@ -178,7 +178,7 @@ __device__ void simpleMult(Vec3Simple a, double n, Vec3Simple *result)
 
 __constant__ double ray_dir[3];
 __constant__ double ray_pos[3];
-__global__ void triIntersection_GPU(Vec3Simple *vs1, Vec3Simple *vs2, Vec3Simple *vs3, double *distance, unsigned int *d_hitIdx, unsigned int *d_hitIdxN)
+__global__ void triIntersection_GPU(Vec3Simple *vs1, Vec3Simple *vs2, Vec3Simple *vs3, double *distance, unsigned int *d_hitIdxN)
 {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   distance[i] = -1;
@@ -227,8 +227,7 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   cudaMalloc((void **)&d_v3, size);
   double *d_distance;
   cudaMalloc((void **)&d_distance, triN * sizeof(double));
-  unsigned int *d_hitIdx, *d_hitIdxN;
-  //cudaMalloc((void **)&d_hitIdx, triN * sizeof(unsigned int));
+  unsigned int *d_hitIdxN;
   cudaMalloc((void **)&d_hitIdxN, sizeof(unsigned int));
   // allocate space for the variables on the host
   v1 = (Vec3Simple *)malloc(size);
@@ -259,7 +258,7 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
     cudaMemcpy(d_hitIdxN, &hitIdxN, sizeof(unsigned int), cudaMemcpyHostToDevice);
     dim3 block(512, 1, 1);
     dim3 grid(ceil(triN, block.x), 1, 1);
-    triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance, d_hitIdx, d_hitIdxN);
+    triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance, d_hitIdxN);
     cudaMemcpy(&hitIdxN, d_hitIdxN, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     if (hitIdxN == 0)
       continue;
@@ -293,12 +292,11 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   free(v2);
   free(v3);
   free(distance);
-  //free(hitIdx);
   cudaFree(d_v1);
   cudaFree(d_v2);
   cudaFree(d_v3);
   cudaFree(d_distance);
-  //cudaFree(d_hitIdx);
+  cudaFree(d_hitIdxN);
   return;
 }
 void Polygon3D::testIntersections(int rayN, Ray *rs, IntersectionPoint *result)
