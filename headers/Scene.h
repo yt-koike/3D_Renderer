@@ -46,15 +46,44 @@ public:
 ColorImage Scene::draw(int width, int height)
 {
   ColorImage img(width, height);
+  int rayN = width*height;
+  Ray* rs = new Ray[rayN];
+    for (double y = 0; y < height; y++)
+  {
+    for (double x = 0; x < width; x++)
+    {
+      Ray r(camera.getPoint(), camera.getDir().add(Vec3(x / width - 0.5, -y / height + 0.5, 0).mult(0.5)));
+      rs[(int)(y*width+x)] = r;
+    }
+  }
+  IntersectionPoint* result = new IntersectionPoint[rayN];
+  IntersectionPoint* tmp = new IntersectionPoint[rayN];
+  IntersectionPoint notExists;
+  for(int i=0;i<rayN;i++){
+    result[i] = notExists;
+  }
+  for(int i=0;i<shapes.size();i++){
+  shapes[i]->testIntersections(rayN,rs,tmp);
+  for(int j=0;j<rayN;j++){
+    if(tmp[j].exists){
+    if(!result[j].exists || tmp[j].distance < result[j].distance){
+      result[j] = tmp[j];
+    }
+    }
+  }
+  }
+  
   for (double y = 0; y < height; y++)
   {
     for (double x = 0; x < width; x++)
     {
       Ray ray(camera.getPoint(), camera.getDir().add(Vec3(x / width - 0.5, -y / height + 0.5, 0).mult(0.5)));
-      Color c = rayTrace(ray);
+      //Color c = rayTrace(ray);
+      Color c = (result[(int)(y*width+x)].exists)?Vec3(255):background;
       img.set(x, y, c.getR(), c.getG(), c.getB());
     }
   }
+  
   return img;
 }
 

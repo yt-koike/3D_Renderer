@@ -18,6 +18,7 @@ public:
   int isVisible(){return visible;}
   void setVisible(int flag){visible=flag;}
   virtual IntersectionPoint testIntersection(Ray r){IntersectionPoint cross;return cross;}
+  virtual void testIntersections(int rayN,Ray* rs,IntersectionPoint* result){for(int i=0;i<rayN;i++){result[i]=testIntersection(rs[i]);}}
   virtual void print() { printf("Null shape"); }
   Color envLightness(Color envRayIntensity);
   Color lightness(IntersectionPoint cross, Vec3 cameraDir, PointLightSource light);

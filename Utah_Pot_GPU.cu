@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include <string.h>
 #include <unistd.h>
-#define GPU_MODE
+//#define GPU_MODE
 #include "headers/RenderSuite.h"
 #include "headers/PPM.h"
 #include "headers/STL.h"
