@@ -217,7 +217,7 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   Vec3Simple *v1, *v2, *v3;
   Vec3Simple *d_v1, *d_v2, *d_v3;
   double *distance = (double *)malloc(triN * sizeof(double));
-  //unsigned int *hitIdx = (unsigned int *)malloc(triN * sizeof(unsigned int));
+  // unsigned int *hitIdx = (unsigned int *)malloc(triN * sizeof(unsigned int));
 
   int size = triN * sizeof(Vec3Simple);
 
