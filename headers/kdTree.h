@@ -75,7 +75,7 @@ public:
         }
     }
     Vec3* searchNearest(Vec3 v);
-    std::vector<Vec3*> search(Vec3 v,int n,std::vector<Vec3*> li);
+    void search(Vec3 v,int n,std::vector<Vec3*> *li);
 };
 
 int isBetween(double a, double x, double b)
@@ -129,6 +129,7 @@ Plane findPlane(const int depth, std::vector<Vec3 *> vs, Voxel v)
     delete ary;
     return Plane(pos, N);
 }
+
 
 TreeNode *recBuild(const int depth, std::vector<Vec3 *> vs, Voxel v)
 {
@@ -199,6 +200,7 @@ TreeNode *recBuild(const int depth, std::vector<Vec3 *> vs, Voxel v)
     result->setOnPlane(onPlane);
     return result;
 }
+TreeNode *recBuild(std::vector<Vec3 *> vs, Voxel v){return recBuild(0,vs,v);}
 
 void seekPrint(TreeNode *root)
 {
@@ -276,29 +278,29 @@ Vec3* TreeNode::searchNearest(Vec3 v)
     return res;
 }
 
-std::vector<Vec3*> TreeNode::search(Vec3 v,int n,std::vector<Vec3*> li){
+void TreeNode::search(Vec3 v,int n,std::vector<Vec3*> *li){
     if (isLeaf())
     {
-        li.push_back(getLeaf());
-        return li;
+        li->push_back(getLeaf());
+        return;
     }
     Vec3 *P = getPos();
     Vec3 *N = getNormal();
     double x = v.sub(*P).dot(*N);
     if(x<0){
-        li = getLeft()->search(v,n,li);
-        li = getRight()->search(v,n,li);
+        getLeft()->search(v,n,li);
+        getRight()->search(v,n,li);
     }else if(x>0){
-        li = getRight()->search(v,n,li);
-        li = getLeft()->search(v,n,li);
+        getRight()->search(v,n,li);
+        getLeft()->search(v,n,li);
     }
     std::vector<Vec3 *> vsOnPlane = getOnPlane();
     for (int i = 0; i < vsOnPlane.size(); i++)
     {
-        if(li.size()>=n)return li;
-        li.push_back(vsOnPlane[i]);
+        if(li->size()>=n)return;
+        li->push_back(vsOnPlane[i]);
     }
-    return li;
+    return;
 }
 
 
