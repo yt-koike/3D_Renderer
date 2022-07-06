@@ -3,305 +3,151 @@
 #include <stdlib.h>
 #include "Vector.h"
 #include <vector>
+#include <algorithm>
 #include "shapes/Plane.h"
 #include "shapes/Triangle.h"
-class Voxel
-{
-private:
-    Vec3 start;
-    Vec3 end;
 
-public:
-    Voxel(Vec3 start, Vec3 end)
-    {
-        this->start = start;
-        this->end = end;
-    }
-    Vec3 getStart() { return start; }
-    Vec3 getEnd() { return end; }
-};
-
-class TreeNode
+typedef struct KdTreeNode
 {
-private:
-    Vec3 *pos;
-    Vec3 *normal;
-    std::vector<Vec3 *> onPlane;
-    TreeNode *left = nullptr;
-    TreeNode *right = nullptr;
-    int leafFlag = 0;
+    KdTreeNode *c1, *c2;
+    Vec3 *split;
+    int isLeaf;
     Vec3 *leaf;
+};
+
+class KdTree
+{
+private:
+    KdTreeNode *root;
 
 public:
-    TreeNode(Vec3 *pos, Vec3 *normal, TreeNode *left, TreeNode *right)
+    void build(int N, Triangle **tris, Vec3 start, Vec3 end);
+    void build(std::vector<Triangle *> tris_vector, Vec3 start, Vec3 end, KdTreeNode *node, char d);
+    void print()
     {
-        this->pos = pos;
-        this->normal = normal;
-        this->left = left;
-        this->right = right;
+        printRec(root);
     }
-    TreeNode(Vec3 *v)
+    void printRec(KdTreeNode *node)
     {
-        this->leafFlag = 1;
-        this->leaf = v;
-    }
-    Vec3 *getPos() { return pos; }
-    Vec3 *getNormal() { return normal; }
-    TreeNode *getLeft() { return left; }
-    TreeNode *getRight() { return right; }
-    int isLeaf() { return leafFlag; }
-    Vec3 *getLeaf() {return leaf; }
-    void setOnPlane(std::vector<Vec3 *> vs) { onPlane = vs; }
-    std::vector<Vec3 *> getOnPlane() { return onPlane; }
-    void move(Vec3 dV){
-        if(isLeaf()){
-            *leaf = leaf->add(dV);
-        }else{
-            *pos = pos->add(dV);
-            getLeft()->move(dV);
-            getRight()->move(dV);
-        }
-        
-    }
-    TreeNode *copy()
-    {
-        if (isLeaf())
+        printf("1");
+        if(node==nullptr)return;
+        if (node->isLeaf==1)
         {
-            return new TreeNode(leaf);
+            (node->leaf)->print();
         }
-        else
+        else if(node->isLeaf<0){
+            printf("Error\n");
+        }else if(node->isLeaf==0)
         {
-            return new TreeNode(pos, normal, left, right);
+            printRec(node->c1);
+            printRec(node->c2);
         }
     }
-    Vec3* searchNearest(Vec3 v);
-    void search(Vec3 v,int n,std::vector<Vec3*> *li);
 };
+
+Vec3 triG(Triangle *tri)
+{
+    return (tri->getV1()).add(tri->getV2()).add(tri->getV3());
+}
+
+std::vector<Triangle *> sortByXYZ(std::vector<Triangle *> tris, char d)
+{
+    switch (d)
+    {
+    case 'x':
+        std::sort(tris.begin(), tris.end(), [](Triangle *a, Triangle *b)
+                  { return triG(a).getX() < triG(b).getX(); });
+        break;
+    case 'y':
+        std::sort(tris.begin(), tris.end(), [](Triangle *a, Triangle *b)
+                  { return triG(a).getY() < triG(b).getY(); });
+        break;
+    case 'z':
+        std::sort(tris.begin(), tris.end(), [](Triangle *a, Triangle *b)
+                  { return triG(a).getZ() < triG(b).getZ(); });
+        break;
+    default:
+        break;
+    }
+    return tris;
+}
 
 int isBetween(double a, double x, double b)
 {
-    return a <= x && x <= b;
+    return a <= x && x < b;
 }
 
-int inVoxel(Vec3 p, Voxel v)
+int isIn(Vec3 p, Vec3 start, Vec3 end)
 {
-    Vec3 start = v.getStart();
-    Vec3 end = v.getEnd();
     return isBetween(start.getX(), p.getX(), end.getX()) &&
            isBetween(start.getY(), p.getY(), end.getY()) &&
            isBetween(start.getZ(), p.getZ(), end.getZ());
 }
 
-int inVoxel(Triangle t, Voxel v)
+/*
+int isIn(Triangle *t,Vec3 start,Vec3 end)
 {
-    return inVoxel(t.getV1(), v) || inVoxel(t.getV2(), v) || inVoxel(t.getV3(), v);
+    return isIn(t->getV1(), start,end) || isIn(t->getV2(), start,end) || isIn(t->getV3(), start,end);
 }
+*/
 
-int compare_double(const void *a, const void *b)
+std::vector<Triangle *> areaFilter(std::vector<Triangle *> tris, Vec3 start, Vec3 end)
 {
-    return *(double *)a - *(double *)b;
-}
-
-Plane findPlane(const int depth, std::vector<Vec3 *> vs, Voxel v)
-{
-    Vec3 N;
-    switch (depth % 3)
+    std::vector<Triangle *> result;
+    for (int i = 0; i < tris.size(); i++)
     {
-    case 0:
-        N.set(1, 0, 0);
-        break;
-    case 1:
-        N.set(0, 1, 0);
-        break;
-    case 2:
-        N.set(0, 0, 1);
-        break;
+        if (isIn(triG(tris[i]), start, end))
+            result.push_back(tris[i]);
     }
-    Vec3 pos;
-    double *ary = new double[vs.size()];
-    for (int i = 0; i < vs.size(); i++)
-    {
-        ary[i] = vs[i]->dot(N);
-    }
-    qsort(ary, vs.size(), sizeof(double), compare_double);
-    double center = ary[vs.size() / 2];
-    pos = N.mult(center);
-    delete ary;
-    return Plane(pos, N);
-}
-
-
-TreeNode *recBuild(const int depth, std::vector<Vec3 *> vs, Voxel v)
-{
-    if (vs.size() == 0)
-    {
-        return nullptr;
-    }
-    if (vs.size() == 1)
-    {
-        return new TreeNode(vs[0]);
-    }
-    Plane p = findPlane(depth, vs, v);
-    Vec3 planeP = p.getPointV();
-    Vec3 planeN = p.getNormalV();
-
-    Vec3 vL_start = v.getStart();
-    Vec3 vR_end = v.getEnd();
-    Vec3 vR_start = vL_start.copy();
-    Vec3 vL_end = vR_end.copy();
-    if (planeN.getX() == 1)
-    { // YZ
-        double pX = planeP.getX();
-        vR_start.setX(pX);
-        vL_end.setX(pX);
-    }
-    else if (planeN.getY() == 1)
-    { // XZ
-        double pY = planeP.getY();
-        vR_start.setY(pY);
-        vL_end.setY(pY);
-    }
-    else if (planeN.getZ() == 1)
-    { // XY
-        double pZ = planeP.getZ();
-        vR_start.setZ(pZ);
-        vL_end.setZ(pZ);
-    }
-    else
-    {
-        perror("invalid plane angle!");
-    }
-
-    Voxel voxL(vL_start, vL_end);
-    Voxel voxR(vR_start, vR_end);
-
-    std::vector<Vec3 *> vL, vR;
-    std::vector<Vec3 *> onPlane;
-    double center = planeP.dot(planeN);
-
-    for (int i = 0; i < vs.size(); i++)
-    {
-        Vec3 *v = vs[i];
-        if (v->dot(planeN) == center)
-        {
-            onPlane.push_back(v);
-            continue;
-        }
-        if (inVoxel(*v, voxL))
-        {
-            vL.push_back(v);
-        }
-        else if (inVoxel(*v, voxR))
-        {
-            vR.push_back(v);
-        }
-    }
-    TreeNode *result = new TreeNode(&planeP, &planeN, recBuild(depth + 1, vL, voxL), recBuild(depth + 1, vR, voxR));
-    result->setOnPlane(onPlane);
     return result;
 }
-TreeNode *recBuild(std::vector<Vec3 *> vs, Voxel v){return recBuild(0,vs,v);}
 
-void seekPrint(TreeNode *root)
+void KdTree::build(int N, Triangle **tris, Vec3 start, Vec3 end)
 {
-    if(!root)return;
-    if (root->isLeaf())
+    std::vector<Triangle *> tris_vector;
+    for (int i = 0; i < N; i++)
     {
-        Vec3 *leaf = root->getLeaf();
-        leaf->print();
+        Triangle *t = tris[i];
+        tris_vector.push_back(tris[i]);
+    }
+    build(tris_vector, start, end, root, 'x');
+}
+
+void KdTree::build(std::vector<Triangle *> tris_vector, Vec3 start, Vec3 end, KdTreeNode *node, char d)
+{
+    node = new KdTreeNode();
+    node->isLeaf = 0;
+    if (tris_vector.size() == 0){
+        node->isLeaf = -1;
+        return;
+    }
+    if (tris_vector.size() == 1)
+    {
+        node->isLeaf = 1;
+        node->leaf = new Vec3(triG(tris_vector[0]));
+        return;
+    }
+    tris_vector = sortByXYZ(tris_vector, d);
+    Vec3 med = triG(tris_vector[tris_vector.size() / 2]);
+    node->split = new Vec3(med);
+    if (tris_vector.size() == 2)
+    {
+        node->c1 = new KdTreeNode();
+        node->c1->leaf = new Vec3(triG(tris_vector[0]));
+        node->c2 = new KdTreeNode();
+        node->c2->leaf = new Vec3(triG(tris_vector[1]));
+        return;
+    }
+    if (d == 'z')
+    {
+        d = 'x';
     }
     else
     {
-        std::vector<Vec3 *> ps = root->getOnPlane();
-        for (int i = 0; i < ps.size(); i++)
-        {
-            ps[i]->print();
-        }
-        seekPrint(root->getLeft());
-        seekPrint(root->getRight());
+        d++;
     }
+    build(areaFilter(tris_vector, start, med), start, med, node->c1, d);
+    build(areaFilter(tris_vector, med, end), med, end, node->c2, d);
 }
-
-int doesHave(TreeNode *root, Vec3 v)
-{
-    if (root->isLeaf())
-    {
-        if (root->getLeaf())
-        {
-            return root->getLeaf()->equals(v);
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    std::vector<Vec3 *> onPlane = root->getOnPlane();
-    for (int i = 0; i < onPlane.size(); i++)
-    {
-        if (onPlane[i]->equals(v))
-            return 1;
-    }
-    return doesHave(root->getLeft(), v) || doesHave(root->getRight(), v);
-}
-
-Vec3* TreeNode::searchNearest(Vec3 v)
-{
-    if (isLeaf())
-    {
-        return getLeaf();
-    }
-    Vec3 *P = getPos();
-    Vec3 *N = getNormal();
-    std::vector<Vec3 *> vsOnPlane = getOnPlane();
-    Vec3 *res = vsOnPlane[0];
-    double distance = res->sub(v).magSq();
-    for (int i = 1; i < vsOnPlane.size(); i++)
-    {
-        if (vsOnPlane[i]->sub(v).magSq() < distance)
-        {
-            res = vsOnPlane[i];
-            distance = res->sub(v).magSq();
-        }
-    }
-    double x = v.sub(*P).dot(*N);
-    Vec3 *vInNextVox = nullptr;
-    if (x < 0)
-    {
-        vInNextVox = getLeft()->searchNearest(v);
-    }
-    else if (x > 0)
-    {
-        vInNextVox = getRight()->searchNearest(v);
-    }
-    if (vInNextVox != nullptr && vInNextVox->sub(v).magSq() < distance)
-        res = vInNextVox;
-    return res;
-}
-
-void TreeNode::search(Vec3 v,int n,std::vector<Vec3*> *li){
-    if (isLeaf())
-    {
-        li->push_back(getLeaf());
-        return;
-    }
-    Vec3 *P = getPos();
-    Vec3 *N = getNormal();
-    double x = v.sub(*P).dot(*N);
-    if(x<0){
-        getLeft()->search(v,n,li);
-        getRight()->search(v,n,li);
-    }else if(x>0){
-        getRight()->search(v,n,li);
-        getLeft()->search(v,n,li);
-    }
-    std::vector<Vec3 *> vsOnPlane = getOnPlane();
-    for (int i = 0; i < vsOnPlane.size(); i++)
-    {
-        if(li->size()>=n)return;
-        li->push_back(vsOnPlane[i]);
-    }
-    return;
-}
-
 
 #endif

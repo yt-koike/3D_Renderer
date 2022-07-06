@@ -15,13 +15,13 @@ private:
   int maxSize = 0;
   Triangle **tris;
   BoundaryBox *boundary;
-  TreeNode* kdTree;
 
 public:
   Polygon3D(int maxSize)
   {
     this->maxSize = maxSize;
     tris = new Triangle *[this->maxSize];
+    boundary = new BoundaryBox();
   }
   Polygon3D rotate(Vec3 origin, Vec3 axis, double rad)
   {
@@ -74,8 +74,6 @@ public:
     }
     return -1;
   }
-  TreeNode* getKdTree(){return kdTree;}
-  void setKdTree(TreeNode* root){kdTree=root;}
   void buildKdTree(){
     printf("Building KdTree\n");
     std::vector<Vec3 *> v;
@@ -89,9 +87,6 @@ public:
       if (find(v, tri->getV3()) == -1)
         v.push_back(tri->getV3p());
     }
-    Voxel vox(boundary->getStartV().sub(Vec3(1)), boundary->getEndV().add(Vec3(1)));
-    TreeNode* root = recBuild(0, v, vox);
-    setKdTree(root);
   }
 };
 
