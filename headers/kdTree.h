@@ -65,7 +65,7 @@ void searchRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator beg
     if(result->size()>=queryN)return;
     int length = std::distance(begin, end);
     int beginIdx = std::distance(tree->begin(), begin);
-    if (length <= 0)
+    if (length == 0)
     {
         result->push_back(tree->at(beginIdx));
         return;
@@ -75,13 +75,13 @@ void searchRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator beg
     switch (d)
     {
     case 'x':
-        way = (p.getX() < triG(tree->at(middleIdx)).getX()) ? 'l' : 'r';
+        way = (p.getX() <= triG(tree->at(middleIdx)).getX()) ? 'l' : 'r';
         break;
     case 'y':
-        way = (p.getY() < triG(tree->at(middleIdx)).getY()) ? 'l' : 'r';
+        way = (p.getY() <= triG(tree->at(middleIdx)).getY()) ? 'l' : 'r';
         break;
     case 'z':
-        way = (p.getZ() < triG(tree->at(middleIdx)).getZ()) ? 'l' : 'r';
+        way = (p.getZ() <= triG(tree->at(middleIdx)).getZ()) ? 'l' : 'r';
         break;
     }
     if (d == 'z')

@@ -15,7 +15,7 @@ private:
   unsigned int maxSize = 0;
   Triangle **tris;
   BoundaryBox *boundary = nullptr;
-  std::vector<Triangle*> kdTree;
+  std::vector<Triangle*> kdTree,nearestToCamera;
 public:
   Polygon3D(int maxSize)
   {
@@ -104,20 +104,12 @@ void Polygon3D::generateBoundary()
   }
 }
 
+/*
 IntersectionPoint Polygon3D::testIntersection(Ray r)
 {
   IntersectionPoint boundaryCross = boundary->testIntersection(r);
   IntersectionPoint cross;
   if (!boundaryCross.exists)return cross;
-/*
-  boundaryCross.position.print();
-  std::vector<Vec3*> li;
-  li = getKdTree()->search(boundaryCross.position,4,li);
-  for(int i=0;i<li.size();i++){
-    li[i]->print();
-  }
-    */
-  //std::vector<Vec3*> li = getKdTree()->search(boundaryCross.position,4,li);
   int closestId = -1;
   double closestDistance = -1;
   for (int i = 0; i < size; i++)
@@ -143,6 +135,53 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   }
   IntersectionPoint noCross;
   return noCross;
+}
+*/
+
+IntersectionPoint Polygon3D::testIntersection(Ray r)
+{
+  IntersectionPoint boundaryCross = boundary->testIntersection(r);
+  IntersectionPoint cross;
+  IntersectionPoint noCross;
+  if (!boundaryCross.exists)return cross;
+  if(nearestToCamera.size()!=size)
+    nearestToCamera = searchNearest(r.getPoint(),size);
+  Triangle* hitTri;
+  int closestId = -1;
+  double closestDistance = -1;
+  for (int i = 0; i < nearestToCamera.size(); i++)
+  {
+    cross = nearestToCamera[i]->testIntersection(r);
+    if (cross.exists)
+    {
+      if (closestId == -1)
+      {
+        closestId = i;
+        closestDistance = cross.distance;
+        hitTri = nearestToCamera[i];
+        break;
+      }
+    }
+  }
+  if(closestId==-1)
+    return noCross;
+  const int searchLimitN = 10;
+  std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
+  for (int i = 0; i < searchLimitN; i++)
+  {
+    cross = nearestTriangles[i]->testIntersection(r);
+    if (cross.exists)
+    {
+      if (cross.distance<closestDistance)
+      {
+        closestId = i;
+        closestDistance = cross.distance;
+        hitTri = nearestTriangles[i];
+        break;
+      }
+    }
+  } 
+  return hitTri->testIntersection(r);
 }
 
 #endif

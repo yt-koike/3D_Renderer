@@ -17,7 +17,7 @@ Triangle* normalSearch(int triN,Triangle** tris,Vec3 p){
 
 int main()
 {
-    Polygon3D sphere = STLBinLoad("ICO_Sphere.stl");
+    Polygon3D sphere = STLBinLoad("STL/Utah_teapot.stl");
     int n;
     Triangle ** tris = sphere.getTriangles(&n);
     std::vector<Triangle*> kdTree = makeKdTree(n,tris);
@@ -26,8 +26,8 @@ int main()
       //  kdTree[i]->print();
     }
     */
-    Vec3 p(10);
-    std::vector<Triangle*> a = sphere.searchNearest(p,80);
+    Vec3 p(0);
+    std::vector<Triangle*> a = sphere.searchNearest(p,10);
     Triangle *b = normalSearch(n,tris,p);
     for(int i=0;i<a.size();i++){
     printf("%f\n",triG(a[i]).sub(p).mag());

@@ -46,9 +46,13 @@ int main(int argn,char** argv)
     }
     char filename[100];
     PPM ppmwriter(width, height, 255);
+    clock_t st,ed;
     printf("Render Start. (%d x %d)\n",width, height);
+    st = clock();
     ColorImage img = scene.draw(width, height);
+    ed = clock();
     printf("Render End.\n");
+    printf("time: %f s\n",(double)(ed-st)/CLOCKS_PER_SEC);
     sprintf(filename, "Utah_Pot.ppm");
     ppmwriter.import(img);
     ppmwriter.writePPM(filename);
