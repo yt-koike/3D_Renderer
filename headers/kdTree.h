@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "shapes/Plane.h"
 #include "shapes/Triangle.h"
+
 Vec3 triG(Triangle *tri)
 {
     return (tri->getV1()).add(tri->getV2()).add(tri->getV3());

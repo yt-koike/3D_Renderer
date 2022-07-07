@@ -27,7 +27,7 @@ int main()
     }
     */
     Vec3 p(10);
-    std::vector<Triangle*> a = searchKdTree(&kdTree,p,80);
+    std::vector<Triangle*> a = sphere.searchNearest(p,80);
     Triangle *b = normalSearch(n,tris,p);
     for(int i=0;i<a.size();i++){
     printf("%f\n",triG(a[i]).sub(p).mag());

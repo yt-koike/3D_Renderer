@@ -11,11 +11,11 @@
 class Polygon3D : public Shape
 {
 private:
-  int size = 0;
-  int maxSize = 0;
+  unsigned int size = 0;
+  unsigned int maxSize = 0;
   Triangle **tris;
-  BoundaryBox *boundary;
-
+  BoundaryBox *boundary = nullptr;
+  std::vector<Triangle*> kdTree;
 public:
   Polygon3D(int maxSize)
   {
@@ -51,7 +51,7 @@ public:
       tris[i]->print();
   }
   void generateBoundary();
-  BoundaryBox *getBoundary() { return boundary; }
+  BoundaryBox *getBoundary() { if(boundary==nullptr)generateBoundary(); return boundary; }
   Polygon3D *copy()
   {
     Polygon3D *newPoly = new Polygon3D(maxSize);
@@ -75,18 +75,11 @@ public:
     return -1;
   }
   void buildKdTree(){
-    printf("Building KdTree\n");
-    std::vector<Vec3 *> v;
-    for (int i = 0; i < size; i++)
-    {
-      Triangle *tri = tris[i];
-      if (find(v, tri->getV1()) == -1)
-        v.push_back(tri->getV1p());
-      if (find(v, tri->getV2()) == -1)
-        v.push_back(tri->getV2p());
-      if (find(v, tri->getV3()) == -1)
-        v.push_back(tri->getV3p());
-    }
+    kdTree = makeKdTree(size,tris);
+  }
+  std::vector<Triangle *> searchNearest(Vec3 p,int queryN){
+    if(kdTree.size()!=size)buildKdTree();
+    return searchKdTree(&kdTree,p,queryN);
   }
 };
 
