@@ -291,6 +291,7 @@ void Polygon3D::testIntersections(int rayN, Ray *rs, IntersectionPoint *result)
   PolyIntersection_GPU(size, tris, rayN, rs, boundary, result);
 }
 #endif
+
 IntersectionPoint Polygon3D::testIntersection(Ray r)
 {
   IntersectionPoint boundaryCross = boundary->testIntersection(r);
@@ -318,7 +319,8 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   }
   if(closestId==-1)
     return noCross;
-  const int searchLimitN = 10;
+  /*
+  const int searchLimitN = size/2;
   std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
   for (int i = 0; i < searchLimitN; i++)
   {
@@ -330,10 +332,10 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
         closestId = i;
         closestDistance = cross.distance;
         hitTri = nearestTriangles[i];
-        break;
       }
     }
   } 
+  */
   return hitTri->testIntersection(r);
 }
 
