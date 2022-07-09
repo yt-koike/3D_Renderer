@@ -7,6 +7,8 @@
 #include "shapes/Plane.h"
 #include "shapes/Triangle.h"
 
+const char firstDimension = 'z';
+
 Vec3 triG(Triangle *tri)
 {
     return (tri->getV1()).add(tri->getV2()).add(tri->getV3());
@@ -55,7 +57,7 @@ std::vector<Triangle *> makeKdTree(int triN, Triangle **tris)
     {
         tree.push_back(tris[i]);
     }
-    sortTreeRec(tree.begin(), tree.end(), &tree, 'x');
+    sortTreeRec(tree.begin(), tree.end(), &tree, firstDimension);
     return tree;
 }
 void searchRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator begin,
@@ -108,7 +110,7 @@ void searchRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator beg
 std::vector<Triangle *> searchKdTree(std::vector<Triangle *> *tree, Vec3 p,int queryN)
 {
     std::vector<Triangle *> result;
-    searchRec(tree->begin(), tree->end()-1, tree, p, 'x',queryN,&result);
+    searchRec(tree->begin(), tree->end()-1, tree, p, firstDimension,queryN,&result);
     return result;
 }
 

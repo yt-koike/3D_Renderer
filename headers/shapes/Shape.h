@@ -10,11 +10,15 @@ class Shape
 {
 protected:
   int visible = 1;
-  Material mt = Material(Color(Vec3(0.01)), Color(Vec3(0.69)), Color(Vec3(0.3)), Vec3(8));
+  Material mt;
 
 public:
+  Shape(){
+    Material defaultMt(Color(Vec3(0.01)), Color(Vec3(0.69)), Color(Vec3(0.3)), Vec3(8)); 
+    setMaterial(defaultMt);
+  }
   Material getMaterial() { return mt; }
-  void setMaterial(Material mt) { this->mt = mt; }
+  void setMaterial(Material mt) { this->mt=mt;}
   int isVisible(){return visible;}
   void setVisible(int flag){visible=flag;}
   virtual IntersectionPoint testIntersection(Ray r){IntersectionPoint cross;return cross;}
@@ -35,11 +39,11 @@ Color Shape::lightness(IntersectionPoint cross, Vec3 cameraDir, PointLightSource
   Vec3 cross1 = cross.position;
   Vec3 n = cross.normal;
   Vec3 l = light.position.sub(cross1).normalize();
-  Color Rd = Color(light.intensity.mult(n.dot(l)).mask(mt.getKd())).clamp();
+  Color Rd = Color(light.intensity.mult(n.dot(l)).mask(mt.getKd()));
   Vec3 r = n.mult(2 * n.dot(l)).sub(l);
   Vec3 antiViewVec = cameraDir.mult(-1).normalize();
-  Color Rs = Color(light.intensity.mask(Vec3(1, 1, 1).mult(r.dot(antiViewVec)).vecPow(mt.getAlpha())).mask(mt.getKs())).clamp();
-  return Color(Rd.add(Rs)).clamp();
+  Color Rs = Color(light.intensity.mask(Vec3(1, 1, 1).mult(r.dot(antiViewVec)).vecPow(mt.getAlpha())).mask(mt.getKs()));
+  return Color(Rd.add(Rs));
 }
 
 #endif

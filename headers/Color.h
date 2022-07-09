@@ -21,13 +21,6 @@ class Color : public Vec3{
 };
 
 Color Color::clamp(){
-    Color c = this->copy();
-    if(c.getX()<0)c.setX(0);
-    if(c.getY()<0)c.setY(0);
-    if(c.getZ()<0)c.setZ(0);
-    if(c.getX()>1)c.setX(1);
-    if(c.getY()>1)c.setY(1);
-    if(c.getZ()>1)c.setZ(1);
-    return c;
+    return this->max(Vec3(0)).min(Vec3(1));
 }
 #endif

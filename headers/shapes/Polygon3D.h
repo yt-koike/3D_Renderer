@@ -109,6 +109,55 @@ void Polygon3D::generateBoundary()
     boundary->includeV(tri->getV3());
   }
 }
+
+
+IntersectionPoint Polygon3D::testIntersection(Ray r)
+{
+  IntersectionPoint boundaryCross = boundary->testIntersection(r);
+  IntersectionPoint cross;
+  IntersectionPoint noCross;
+  if (!boundaryCross.exists)return cross;
+  if(nearestToCamera.size()!=size)
+    nearestToCamera = searchNearest(r.getPoint(),size);
+  Triangle* hitTri;
+  int closestId = -1;
+  double closestDistance = -1;
+  for (int i = 0; i < nearestToCamera.size(); i++)
+  {
+    cross = nearestToCamera[i]->testIntersection(r);
+    if (cross.exists)
+    {
+      if (closestId == -1)
+      {
+        closestId = i;
+        closestDistance = cross.distance;
+        hitTri = nearestToCamera[i];
+        break;
+      }
+    }
+  }
+  if(closestId==-1)
+    return noCross;
+  /*
+  std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
+  for (int i = 0; i < searchLimitN; i++)
+  {
+    cross = nearestTriangles[i]->testIntersection(r);
+    if (cross.exists)
+    {
+      if (cross.distance<closestDistance)
+      {
+        closestId = i;
+        closestDistance = cross.distance;
+        hitTri = nearestTriangles[i];
+      }
+    }
+  } 
+  */
+  return hitTri->testIntersection(r);
+}
+
+
 #ifdef GPU_MODE
 typedef struct
 {
@@ -198,7 +247,21 @@ inline int ceil(double x, double deno)
   int div = x / deno;
   return div + (x > div * deno);
 }
-
+/*
+__global__ void min_GPU(double *ary,int *idx){
+unsigned int globalId = blockIdx.x * blockDim.x + threadIdx.x;
+idx[globalId]=globalId;
+for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
+  if(threadIdx.x<s){
+    if(ary[globalId+s]<ary[globalId]){
+      ary[globalId]=ary[globalId+s];
+      idx[globalId]=idx[globalId+s];
+    }
+  }
+  __syncthreads();
+}
+}
+*/
 __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs, BoundaryBox *boundary, IntersectionPoint *result)
 {
   Vec3Simple *v1, *v2, *v3;
@@ -234,9 +297,11 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
 
   for (int rayIdx = 0; rayIdx < rayN; rayIdx++)
   {
+    result[rayIdx].exists = 0;
     Ray r = rs[rayIdx];
     if (!boundary->testIntersection(r).exists)
       continue;
+
     unsigned int hitIdxN = 0;
     Vec3Simple simple_dir = simplize(r.getDir());
     Vec3Simple simple_pos = simplize(r.getPoint());
@@ -265,14 +330,12 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
         foundFlag = 1;
       }
     }
-    IntersectionPoint cross;
     if (triIdx >= 0)
     {
-      cross.exists = 1;
-      cross.distance = minDistance;
-      cross.normal = tris[triIdx]->getNormalV();
-      cross.position = r.getDir().mult(minDistance).add(r.getPoint());
-      result[rayIdx] = cross;
+      result[rayIdx].exists = 1;
+      result[rayIdx].distance = minDistance;
+      result[rayIdx].normal = tris[triIdx]->getNormalV();
+      result[rayIdx].position = r.getDir().mult(minDistance).add(r.getPoint());
     }
   }
   free(v1);
@@ -286,55 +349,22 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   cudaFree(d_hitIdxN);
   return;
 }
-void Polygon3D::testIntersections(int rayN, Ray *rs, IntersectionPoint *result)
+
+void Polygon3D::testIntersections(int rayN, Ray *rays, IntersectionPoint *result)
 {
-  PolyIntersection_GPU(size, tris, rayN, rs, boundary, result);
+  PolyIntersection_GPU(size,tris,rayN,rays,boundary,result);return;
+  if(nearestToCamera.size()!=size)
+    nearestToCamera = searchNearest(rays[0].getPoint(),size);
+  const int checkTriN = size/2;
+  Triangle** nearestTris = new Triangle*[checkTriN];
+  for(int i=0;i<checkTriN;i++){
+    nearestTris[i] = nearestToCamera[i];
+  }
+  PolyIntersection_GPU(checkTriN,nearestTris,rayN,rays,boundary,result);
+  delete nearestTris;
+  return;
 }
 #endif
-IntersectionPoint Polygon3D::testIntersection(Ray r)
-{
-  IntersectionPoint boundaryCross = boundary->testIntersection(r);
-  IntersectionPoint cross;
-  IntersectionPoint noCross;
-  if (!boundaryCross.exists)return cross;
-  if(nearestToCamera.size()!=size)
-    nearestToCamera = searchNearest(r.getPoint(),size);
-  Triangle* hitTri;
-  int closestId = -1;
-  double closestDistance = -1;
-  for (int i = 0; i < nearestToCamera.size(); i++)
-  {
-    cross = nearestToCamera[i]->testIntersection(r);
-    if (cross.exists)
-    {
-      if (closestId == -1)
-      {
-        closestId = i;
-        closestDistance = cross.distance;
-        hitTri = nearestToCamera[i];
-        break;
-      }
-    }
-  }
-  if(closestId==-1)
-    return noCross;
-  const int searchLimitN = 10;
-  std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
-  for (int i = 0; i < searchLimitN; i++)
-  {
-    cross = nearestTriangles[i]->testIntersection(r);
-    if (cross.exists)
-    {
-      if (cross.distance<closestDistance)
-      {
-        closestId = i;
-        closestDistance = cross.distance;
-        hitTri = nearestTriangles[i];
-        break;
-      }
-    }
-  } 
-  return hitTri->testIntersection(r);
-}
+
 
 #endif
