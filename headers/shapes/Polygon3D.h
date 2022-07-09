@@ -138,6 +138,19 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   }
   if(closestId==-1)
     return noCross;
+  const unsigned int searchLimitN = 100;
+  for(int i=closestId;i<closestId+searchLimitN;i++){
+        cross = nearestToCamera[i]->testIntersection(r);
+    if (cross.exists)
+    {
+      if (cross.distance<closestDistance)
+      {
+        closestId = i;
+        closestDistance = cross.distance;
+        hitTri = nearestToCamera[i];
+      }
+    }
+  }
   /*
   std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
   for (int i = 0; i < searchLimitN; i++)

@@ -70,10 +70,7 @@ void Scene::testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *c
   {
     if (!shapes[i]->isVisible())
       continue;
-    clock_t st,ed;st = clock();
     shapes[i]->testIntersections(rayN, rs, crosses_tmp);
-    ed = clock();
-    printf("object %d: %f s\n",i,(double)(ed-st)/CLOCKS_PER_SEC);
     for (int rayIdx = 0; rayIdx < rayN; rayIdx++)
     {
       IntersectionPoint cross = crosses_tmp[rayIdx];
