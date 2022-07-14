@@ -1,0 +1,17 @@
+Average time per 10 tests
+TEST_---0.log Average time: 75.8794348 s
+TEST_---3.log Average time: 6.1630852 s
+TEST_--G0.log Average time: 3.0274774 s
+TEST_--G3.log Average time: 2.8707360999999993 s
+TEST_-K-0.log Average time: 72.19028719999999 s
+TEST_-K-3.log Average time: 7.9692261 s
+TEST_-KG0.log Average time: 2.4222947999999995 s
+TEST_-KG3.log Average time: 2.1956706000000006 s
+TEST_B--0.log Average time: 36.781372899999994 s
+TEST_B--3.log Average time: 2.4931732 s
+TEST_B-G0.log Average time: 1.8531587999999999 s
+TEST_B-G3.log Average time: 1.630959 s
+TEST_BK-0.log Average time: 27.639284500000002 s
+TEST_BK-3.log Average time: 3.0512536999999997 s
+TEST_BKG0.log Average time: 1.4951177999999998 s
+TEST_BKG3.log Average time: 1.2058342999999998 s
