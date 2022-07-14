@@ -174,8 +174,6 @@ void Scene::rayTrace(int rayN, Ray *rays, Color *result)
     result[i] = rayCalc(rays[i], crosses[i], shapes[shapeIds[i]], 0);
     //result[i].print();
   }
-  delete crosses;
-  delete shapeIds;
 }
 
 #endif
