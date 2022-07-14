@@ -36,14 +36,14 @@ Color Shape::envLightness(Color envRayIntensity)
 
 Color Shape::lightness(IntersectionPoint cross, Vec3 cameraDir, PointLightSource light)
 {
-  Vec3 cross1 = cross.position;
   Vec3 n = cross.normal;
-  Vec3 l = light.position.sub(cross1).normalize();
+  Vec3 l = light.position.sub(cross.position).normalize();
   Color Rd = Color(light.intensity.mult(n.dot(l)).mask(mt.getKd()));
   Vec3 r = n.mult(2 * n.dot(l)).sub(l);
   Vec3 antiViewVec = cameraDir.mult(-1).normalize();
-  Color Rs = Color(light.intensity.mask(Vec3(1, 1, 1).mult(r.dot(antiViewVec)).vecPow(mt.getAlpha())).mask(mt.getKs()));
-  return Color(Rd.add(Rs));
+  Color Rs = Color(light.intensity.mask(Vec3(r.dot(antiViewVec)).vecPow(mt.getAlpha())).mask(mt.getKs()));
+  Color result = Color(Rd.add(Rs));
+  return result;
 }
 
 #endif

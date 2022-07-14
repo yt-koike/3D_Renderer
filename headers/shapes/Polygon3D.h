@@ -15,7 +15,8 @@ private:
   unsigned int maxSize = 0;
   Triangle **tris;
   BoundaryBox *boundary = nullptr;
-  std::vector<Triangle*> kdTree,nearestToCamera;
+  std::vector<Triangle *> kdTree, nearestToCamera;
+
 public:
   Polygon3D(int maxSize)
   {
@@ -51,7 +52,12 @@ public:
       tris[i]->print();
   }
   void generateBoundary();
-  BoundaryBox *getBoundary() { if(boundary==nullptr)generateBoundary(); return boundary; }
+  BoundaryBox *getBoundary()
+  {
+    if (boundary == nullptr)
+      generateBoundary();
+    return boundary;
+  }
   Polygon3D *copy()
   {
     Polygon3D *newPoly = new Polygon3D(maxSize);
@@ -77,12 +83,15 @@ public:
     }
     return -1;
   }
-  void buildKdTree(){
-    kdTree = makeKdTree(size,tris);
+  void buildKdTree()
+  {
+    kdTree = makeKdTree(size, tris);
   }
-  std::vector<Triangle *> searchNearest(Vec3 p,int queryN){
-    if(kdTree.size()!=size)buildKdTree();
-    return searchKdTree(&kdTree,p,queryN);
+  std::vector<Triangle *> searchNearest(Vec3 p, int queryN)
+  {
+    if (kdTree.size() != size)
+      buildKdTree();
+    return searchKdTree(&kdTree, p, queryN);
   }
 #ifdef GPU_MODE
   void testIntersections(int rayN, Ray *rs, IntersectionPoint *result);
@@ -110,16 +119,19 @@ void Polygon3D::generateBoundary()
   }
 }
 
-
 IntersectionPoint Polygon3D::testIntersection(Ray r)
 {
   IntersectionPoint boundaryCross = boundary->testIntersection(r);
   IntersectionPoint cross;
   IntersectionPoint noCross;
-  if (!boundaryCross.exists)return cross;
-  if(nearestToCamera.size()!=size)
-    nearestToCamera = searchNearest(r.getPoint(),size);
-  Triangle* hitTri;
+  IntersectionPoint result;
+  #ifdef BOUNDARY_BOX_MODE
+  if (!boundaryCross.exists)
+    return cross;
+  #endif
+  #ifdef KD_TREE_MODE
+  if (nearestToCamera.size() != size)
+    nearestToCamera = searchNearest(r.getPoint(), size);
   int closestId = -1;
   double closestDistance = -1;
   for (int i = 0; i < nearestToCamera.size(); i++)
@@ -131,45 +143,42 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
       {
         closestId = i;
         closestDistance = cross.distance;
-        hitTri = nearestToCamera[i];
+        result=cross;
         break;
       }
     }
   }
-  if(closestId==-1)
+  if (closestId == -1)
     return noCross;
   const unsigned int searchLimitN = 100;
-  for(int i=closestId;i<closestId+searchLimitN;i++){
-        cross = nearestToCamera[i]->testIntersection(r);
+  for (int i = closestId; i < closestId + searchLimitN; i++)
+  {
+    cross = nearestToCamera[i]->testIntersection(r);
     if (cross.exists)
     {
-      if (cross.distance<closestDistance)
+      if (cross.distance < closestDistance)
       {
         closestId = i;
         closestDistance = cross.distance;
-        hitTri = nearestToCamera[i];
+        result = cross;
       }
     }
   }
-  /*
-  std::vector<Triangle*> nearestTriangles = searchNearest(cross.position,searchLimitN);
-  for (int i = 0; i < searchLimitN; i++)
+  return result;
+  #endif
+  for (int i = 0; i < size; i++)
   {
-    cross = nearestTriangles[i]->testIntersection(r);
+    cross = tris[i]->testIntersection(r);
     if (cross.exists)
     {
-      if (cross.distance<closestDistance)
+      if (!result.exists || cross.distance < result.distance)
       {
-        closestId = i;
-        closestDistance = cross.distance;
-        hitTri = nearestTriangles[i];
+        result = cross;
       }
     }
-  } 
-  */
-  return hitTri->testIntersection(r);
+  }
+  return result;
 }
-
 
 #ifdef GPU_MODE
 typedef struct
@@ -312,9 +321,10 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   {
     result[rayIdx].exists = 0;
     Ray r = rs[rayIdx];
+    #ifdef BOUNDARY_BOX_MODE
     if (!boundary->testIntersection(r).exists)
-      continue;
-
+       continue;
+#endif
     unsigned int hitIdxN = 0;
     Vec3Simple simple_dir = simplize(r.getDir());
     Vec3Simple simple_pos = simplize(r.getPoint());
@@ -365,19 +375,22 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
 
 void Polygon3D::testIntersections(int rayN, Ray *rays, IntersectionPoint *result)
 {
-  PolyIntersection_GPU(size,tris,rayN,rays,boundary,result);return;
-  if(nearestToCamera.size()!=size)
-    nearestToCamera = searchNearest(rays[0].getPoint(),size);
-  const int checkTriN = size/2;
-  Triangle** nearestTris = new Triangle*[checkTriN];
-  for(int i=0;i<checkTriN;i++){
+#ifdef KD_TREE_MODE
+  if (nearestToCamera.size() != size)
+    nearestToCamera = searchNearest(rays[0].getPoint(), size);
+  const int checkTriN = size / 2;
+  Triangle **nearestTris = new Triangle *[checkTriN];
+  for (int i = 0; i < checkTriN; i++)
+  {
     nearestTris[i] = nearestToCamera[i];
   }
-  PolyIntersection_GPU(checkTriN,nearestTris,rayN,rays,boundary,result);
+  PolyIntersection_GPU(checkTriN, nearestTris, rayN, rays, boundary, result);
   delete nearestTris;
+  return;
+#endif
+  PolyIntersection_GPU(size, tris, rayN, rays, boundary, result);
   return;
 }
 #endif
-
 
 #endif

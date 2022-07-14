@@ -8,7 +8,7 @@
 
 int main(int argn,char** argv)
 {
-    Ray camera(Vec3(0, 0,-5), Vec3(0, 0,1));
+    Ray camera(Vec3(0, 3,-5), Vec3(0, 0,1));
     Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237));
     // load cube from file
     Material coneMt(Color(Vec3(0.1)), Color(Vec3(0.69,0,0)), Color(Vec3(0.3)), Vec3(8));
