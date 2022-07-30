@@ -14,104 +14,68 @@ Vec3 triG(Triangle *tri)
     return (tri->getV1()).add(tri->getV2()).add(tri->getV3());
 }
 
-void sortTreeRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator begin,
-                 std::vector<Triangle *, std::allocator<Triangle *>>::iterator end,
-                 std::vector<Triangle *> *tree, char d)
+void sortTreeRange(unsigned int begin,
+                   unsigned int end,
+                   Triangle **tree, char d)
 {
-    unsigned int length = std::distance(begin, end);
-    if (length <= 1)
-        return;
-    switch (d)
+    for(unsigned int i=begin;i<end){
+    for(unsigned int j=i;j<=end){
+        int swapFlag;
+        switch (d)
     {
     case 'x':
-        std::sort(begin, end, [](Triangle *a, Triangle *b)
-                  { return triG(a).getX() < triG(b).getX(); });
+    swapFlag=triG(tree[i]).getX()>triG(tree[j]).getX();
         break;
     case 'y':
-        std::sort(begin, end, [](Triangle *a, Triangle *b)
-                  { return triG(a).getY() < triG(b).getY(); });
+    swapFlag=triG(tree[i]).getY()>triG(tree[j]).getY();
         break;
     case 'z':
-        std::sort(begin, end, [](Triangle *a, Triangle *b)
-                  { return triG(a).getZ() < triG(b).getZ(); });
+    swapFlag=triG(tree[i]).getZ()>triG(tree[j]).getZ();
         break;
     }
-    if (d == 'z')
-    {
-        d = 'x';
+    if(swapFlag){
+        Triangle* z = tree[i];
+        tree[i] = tree[j];
+        tree[j] = z;
     }
-    else
-    {
-        d++;
-    }
+        }
+            }
+}
+
+void sortTreeRec(unsigned int begin,
+                 unsigned int end,
+                 Triangle **tree, char d)
+{
+    unsigned int length = end - begin;
+    if (length <= 1)
+        return;
+    sortTreeRange(begin,end,tree,d);
+    d = (d=='z')?'x':d+1;
 
     sortTreeRec(begin, begin + length / 2, tree, d);
     sortTreeRec(begin + length / 2 + 1 + (length % 2), end, tree, d);
     return;
 }
 
-std::vector<Triangle *> makeKdTree(int triN, Triangle **tris)
+Triangle **makeKdTree(int triN, Triangle **tris)
 {
-    std::vector<Triangle *> tree;
-    for (int i = 0; i < triN; i++)
-    {
-        tree.push_back(tris[i]);
-    }
-    sortTreeRec(tree.begin(), tree.end(), &tree, firstDimension);
+    Triangle **tree = new Triangle *[triN];
+    for(int i=0;i<triN;i++)tree[i]=tris[i];
+    sortTreeRec(0,triN-1,tree,d);
     return tree;
 }
-void searchRec(std::vector<Triangle *, std::allocator<Triangle *>>::iterator begin,
-                    std::vector<Triangle *, std::allocator<Triangle *>>::iterator end,
-                    std::vector<Triangle *> *tree, Vec3 p, char d,int queryN, std::vector<Triangle*> *result)
+
+void searchRec(unsigned int begin,
+               unsigned int end,
+               Triangle **tree, char d, int queryN, Triangle **result)
 {
-    if(result->size()>=queryN)return;
-    int length = std::distance(begin, end);
-    int beginIdx = std::distance(tree->begin(), begin);
-    if (length == 0)
-    {
-        result->push_back(tree->at(beginIdx));
-        return;
-    }
-    int middleIdx = beginIdx + length / 2 + (length % 2);
-    char way;
-    switch (d)
-    {
-    case 'x':
-        way = (p.getX() <= triG(tree->at(middleIdx)).getX()) ? 'l' : 'r';
-        break;
-    case 'y':
-        way = (p.getY() <= triG(tree->at(middleIdx)).getY()) ? 'l' : 'r';
-        break;
-    case 'z':
-        way = (p.getZ() <= triG(tree->at(middleIdx)).getZ()) ? 'l' : 'r';
-        break;
-    }
-    if (d == 'z')
-    {
-        d = 'x';
-    }
-    else
-    {
-        d++;
-    }
-    if (way == 'l')
-    {
-        searchRec(begin, begin + length / 2, tree, p, d,queryN,result);
-        searchRec(begin + length / 2 + 1, end, tree, p, d,queryN,result);
-    }
-    else if (way == 'r')
-    {
-        searchRec(begin + length / 2 + 1, end, tree, p, d,queryN,result);
-        searchRec(begin, begin + length / 2, tree, p, d,queryN,result);
-    }
     return;
 }
 
-std::vector<Triangle *> searchKdTree(std::vector<Triangle *> *tree, Vec3 p,int queryN)
+void searchKdTree(Triangle **tree, Vec3 p, int queryN)
 {
-    std::vector<Triangle *> result;
-    searchRec(tree->begin(), tree->end()-1, tree, p, firstDimension,queryN,&result);
-    return result;
+    searchRec(tree->begin(), tree->end() - 1, tree, p, firstDimension, queryN, &result);
+    return;
 }
 
 #endif
