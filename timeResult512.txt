@@ -1,18 +1,18 @@
 Average time per 10 tests
 Image size: 512x512
-TEST_---0.log Average time: 307.10820829999994 s, time std: 3.6943575708712637 s
-TEST_---3.log Average time: 24.2131459 s, time std: 0.2112987379538508 s
-TEST_--G0.log Average time: 11.662854499999998 s, time std: 0.19742173960901552 s
-TEST_--G3.log Average time: 10.880006600000002 s, time std: 0.019795722766294464 s
-TEST_-K-0.log Average time: 286.524467 s, time std: 1.4756188817810032 s
-TEST_-K-3.log Average time: 30.5984467 s, time std: 0.23617312847191105 s
-TEST_-KG0.log Average time: 8.6412293 s, time std: 0.01742331110351892 s
-TEST_-KG3.log Average time: 8.017449 s, time std: 0.021392179949691885 s
-TEST_B--0.log Average time: 146.1556734 s, time std: 0.8960111998159609 s
-TEST_B--3.log Average time: 9.647648900000002 s, time std: 0.1174210677676284 s
-TEST_B-G0.log Average time: 6.880364299999999 s, time std: 0.028106924157758666 s
-TEST_B-G3.log Average time: 6.0661267 s, time std: 0.02077643622496402 s
-TEST_BK-0.log Average time: 107.8600307 s, time std: 0.7417192740599436 s
-TEST_BK-3.log Average time: 11.548348899999999 s, time std: 0.055569827304842466 s
-TEST_BKG0.log Average time: 5.3368151 s, time std: 0.1876693112788822 s
-TEST_BKG3.log Average time: 4.5143094 s, time std: 0.14204741456724923 s
+TEST_---0_512.log Average time: 304.4492184 s, time std: 1.0347862922429198 s
+TEST_---3_512.log Average time: 24.659721899999997 s, time std: 0.875838844555258 s
+TEST_--G0_512.log Average time: 11.746275800000001 s, time std: 0.014993209955176482 s
+TEST_--G3_512.log Average time: 10.9791359 s, time std: 0.03488642296209227 s
+TEST_-K-0_512.log Average time: 115.1060995 s, time std: 0.9353813218630392 s
+TEST_-K-3_512.log Average time: 10.9988604 s, time std: 0.12612041948962882 s
+TEST_-KG0_512.log Average time: 8.816429 s, time std: 0.0249086421869999 s
+TEST_-KG3_512.log Average time: 8.184277199999999 s, time std: 0.022759147461186038 s
+TEST_B--0_512.log Average time: 150.97845649999996 s, time std: 0.5015577530638434 s
+TEST_B--3_512.log Average time: 9.635563600000001 s, time std: 0.07468683085685175 s
+TEST_B-G0_512.log Average time: 7.137055200000001 s, time std: 0.022208180676498466 s
+TEST_B-G3_512.log Average time: 6.157431400000001 s, time std: 0.017488251617585927 s
+TEST_BK-0_512.log Average time: 54.81276859999999 s, time std: 0.332622297753533 s
+TEST_BK-3_512.log Average time: 5.9277353 s, time std: 0.05859933916700769 s
+TEST_BKG0_512.log Average time: 5.3225193 s, time std: 0.15264010614386384 s
+TEST_BKG3_512.log Average time: 4.5209279 s, time std: 0.026456307846901086 s
