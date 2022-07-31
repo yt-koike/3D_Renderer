@@ -39,6 +39,7 @@ Polygon3D STLBinLoad(const char *filename)
     }
     fclose(fp);
     poly.generateBoundary();
+    poly.buildKdTree();
     return poly;
 }
 
@@ -71,6 +72,7 @@ Polygon3D STLload(const char *filename)
     }
     ifs.close();
     poly.generateBoundary();
+    poly.buildKdTree();
     return poly;
 }
 
