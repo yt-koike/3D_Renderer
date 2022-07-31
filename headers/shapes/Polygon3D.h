@@ -128,7 +128,6 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   if (!boundaryCross.exists)
     return cross;
   #endif
-  #ifdef BOUNDARY_BOX_MODE
   #ifdef KD_TREE_MODE
   int closestId = -1;
   double closestDistance = -1;
@@ -169,7 +168,6 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   if (closestId == -1)
     return noCross;
   return result;
-    #endif
   #endif
   for (int i = 0; i < size; i++)
   {
@@ -380,7 +378,6 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
 
 void Polygon3D::testIntersections(int rayN, Ray *rays, IntersectionPoint *result)
 {
-#ifdef BOUNDARY_BOX_MODE
 #ifdef KD_TREE_MODE
   IntersectionPoint boundaryCross = boundary->testIntersection(r);
   Triangle **nearestTris = new Triangle *[checkTriN];
@@ -389,7 +386,6 @@ void Polygon3D::testIntersections(int rayN, Ray *rays, IntersectionPoint *result
   PolyIntersection_GPU(queryN, nearestTris, rayN, rays, boundary, result);
   delete nearestTris;
   return;
-#endif
 #endif
   PolyIntersection_GPU(size, tris, rayN, rays, boundary, result);
   return;
