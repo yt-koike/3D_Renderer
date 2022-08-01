@@ -15,7 +15,7 @@ private:
   unsigned int maxSize = 0;
   Triangle **tris;
   BoundaryBox *boundary = nullptr;
-  KdTree* kdTree = nullptr;
+  KdTree *kdTree = nullptr;
 
 public:
   Polygon3D(int maxSize)
@@ -86,9 +86,9 @@ public:
   }
   void buildKdTree()
   {
-    kdTree = new KdTree(size,tris);
+    kdTree = new KdTree(size, tris);
   }
-  KdTree* getKdTree()
+  KdTree *getKdTree()
   {
     return kdTree;
   }
@@ -124,51 +124,34 @@ IntersectionPoint Polygon3D::testIntersection(Ray r)
   IntersectionPoint cross;
   IntersectionPoint noCross;
   IntersectionPoint result;
-  #ifdef BOUNDARY_BOX_MODE
+#ifdef BOUNDARY_BOX_MODE
   if (!boundaryCross.exists)
     return cross;
-  #endif
-  #ifdef KD_TREE_MODE
+#endif
+#ifdef KD_TREE_MODE
   int closestId = -1;
   double closestDistance = -1;
   unsigned int queryN = kdTree->getNodeN()/4;
-  Triangle** nearTris = new Triangle*[queryN];
-  kdTree->searchNearest(boundaryCross.position,queryN,nearTris);
+  Triangle **nearestTris = new Triangle *[queryN];
+  kdTree->searchNearest(boundaryCross.position, queryN, nearestTris);
   for (int i = 0; i < queryN; i++)
   {
-    if(nearTris[i]==nullptr)continue;
-    cross = nearTris[i]->testIntersection(r);
+    cross = nearestTris[i]->testIntersection(r);
     if (cross.exists)
     {
-      if (closestId == -1)
+      if (closestId == -1||cross.distance < closestDistance)
       {
         closestId = i;
         closestDistance = cross.distance;
-        result=cross;
-        break;
+        result = cross;
       }
     }
   }
-  Vec3 nearPoint = result.position.add(boundaryCross.position.mult(3)).mult(0.25f);
-  kdTree->searchNearest(boundaryCross.position,10,nearTris);
-  for (int i = 0; i < 10; i++)
-  {
-    cross = nearTris[i]->testIntersection(r);
-    if (cross.exists)
-    {
-      if (cross.distance< closestDistance)
-      {
-        closestId = i;
-        closestDistance = cross.distance;
-        result=cross;
-      }
-    }
-  }
-  delete nearTris;
+  delete nearestTris;
   if (closestId == -1)
     return noCross;
   return result;
-  #endif
+#endif
   for (int i = 0; i < size; i++)
   {
     cross = tris[i]->testIntersection(r);
@@ -239,7 +222,7 @@ __device__ void simpleMult(Vec3Simple a, double n, Vec3Simple *result)
 
 __constant__ double ray_dir[3];
 __constant__ double ray_pos[3];
-__global__ void triIntersection_GPU(Vec3Simple *vs1, Vec3Simple *vs2, Vec3Simple *vs3, double *distance, unsigned int *d_hitIdxN)
+__global__ void triIntersection_GPU(Vec3Simple *vs1, Vec3Simple *vs2, Vec3Simple *vs3, double *distance, unsigned int *d_hitN)
 {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   distance[i] = -1;
@@ -264,7 +247,7 @@ __global__ void triIntersection_GPU(Vec3Simple *vs1, Vec3Simple *vs2, Vec3Simple
   if (!(u >= 0 && v >= 0 && u + v <= 1))
     return;
   distance[i] = simpleDot(Q, E1) / deno;
-  atomicAdd(d_hitIdxN, 1);
+  atomicAdd(d_hitN, 1);
 }
 
 inline int ceil(double x, double deno)
@@ -272,28 +255,12 @@ inline int ceil(double x, double deno)
   int div = x / deno;
   return div + (x > div * deno);
 }
-/*
-__global__ void min_GPU(double *ary,int *idx){
-unsigned int globalId = blockIdx.x * blockDim.x + threadIdx.x;
-idx[globalId]=globalId;
-for (unsigned int s=blockDim.x/2; s>0; s>>=1) {
-  if(threadIdx.x<s){
-    if(ary[globalId+s]<ary[globalId]){
-      ary[globalId]=ary[globalId+s];
-      idx[globalId]=idx[globalId+s];
-    }
-  }
-  __syncthreads();
-}
-}
-*/
+
 __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs, BoundaryBox *boundary, IntersectionPoint *result)
 {
   Vec3Simple *v1, *v2, *v3;
   Vec3Simple *d_v1, *d_v2, *d_v3;
   double *distance = (double *)malloc(triN * sizeof(double));
-  // unsigned int *hitIdx = (unsigned int *)malloc(triN * sizeof(unsigned int));
-
   int size = triN * sizeof(Vec3Simple);
 
   // allocate space for the variables on the device
@@ -302,8 +269,8 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   cudaMalloc((void **)&d_v3, size);
   double *d_distance;
   cudaMalloc((void **)&d_distance, triN * sizeof(double));
-  unsigned int *d_hitIdxN;
-  cudaMalloc((void **)&d_hitIdxN, sizeof(unsigned int));
+  unsigned int *d_hitN;
+  cudaMalloc((void **)&d_hitN, sizeof(unsigned int));
   // allocate space for the variables on the host
   v1 = (Vec3Simple *)malloc(size);
   v2 = (Vec3Simple *)malloc(size);
@@ -324,22 +291,21 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   {
     result[rayIdx].exists = 0;
     Ray r = rs[rayIdx];
-    #ifdef BOUNDARY_BOX_MODE
+#ifdef BOUNDARY_BOX_MODE
     if (!boundary->testIntersection(r).exists)
-       continue;
+      continue;
 #endif
-    unsigned int hitIdxN = 0;
+    unsigned int hitN = 0;
     Vec3Simple simple_dir = simplize(r.getDir());
     Vec3Simple simple_pos = simplize(r.getPoint());
     cudaMemcpyToSymbol(ray_dir, &simple_dir, sizeof(Vec3Simple));
     cudaMemcpyToSymbol(ray_pos, &simple_pos, sizeof(Vec3Simple));
-    cudaMemcpy(d_hitIdxN, &hitIdxN, sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_hitN, &hitN, sizeof(unsigned int), cudaMemcpyHostToDevice);
     dim3 block(512, 1, 1);
     dim3 grid(ceil(triN, block.x), 1, 1);
-    triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance, d_hitIdxN);
-    cudaMemcpy(&hitIdxN, d_hitIdxN, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    if (hitIdxN == 0)
-      continue;
+    triIntersection_GPU<<<grid, block>>>(d_v1, d_v2, d_v3, d_distance, d_hitN);
+    cudaMemcpy(&hitN, d_hitN, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    if (hitN == 0)  continue;
     cudaMemcpy(distance, d_distance, triN * sizeof(double), cudaMemcpyDeviceToHost);
     int triIdx = -1;
     int foundFlag = 0;
@@ -372,18 +338,18 @@ __host__ void PolyIntersection_GPU(int triN, Triangle **tris, int rayN, Ray *rs,
   cudaFree(d_v2);
   cudaFree(d_v3);
   cudaFree(d_distance);
-  cudaFree(d_hitIdxN);
+  cudaFree(d_hitN);
   return;
 }
 
 void Polygon3D::testIntersections(int rayN, Ray *rays, IntersectionPoint *result)
 {
 #ifdef KD_TREE_MODE
-  IntersectionPoint boundaryCross = boundary->testIntersection(r);
-  Triangle **nearestTris = new Triangle *[checkTriN];
-  unsigned int queryN = kdTree->getNodeN()/4;
-  kdTree->searchNearest(boundaryCross.position,queryN,nearestTris);
-  PolyIntersection_GPU(queryN, nearestTris, rayN, rays, boundary, result);
+  unsigned int triN = kdTree->getNodeN()/2;
+  Triangle **nearestTris = new Triangle *[triN];
+  Vec3 cameraPos = rays[0].getPoint();
+  kdTree->searchNearest(cameraPos, triN, nearestTris);
+  PolyIntersection_GPU(triN, nearestTris, rayN, rays, boundary, result);
   delete nearestTris;
   return;
 #endif

@@ -1,4 +1,5 @@
 Average time per 10 tests
+Image size: 256x256
 TEST_---0.log Average time: 75.8794348 s
 TEST_---3.log Average time: 6.1630852 s
 TEST_--G0.log Average time: 3.0274774 s

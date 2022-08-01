@@ -1,0 +1,16 @@
+TEST_---0_1024.log Average time: 1214.0887149 s, time std: 5.216090062312225 s
+TEST_---3_1024.log Average time: 96.90651290000001 s, time std: 0.8307212069515786 s
+TEST_--G0_1024.log Average time: 45.9769044 s, time std: 0.1619755832637736 s
+TEST_--G3_1024.log Average time: 43.0391207 s, time std: 0.14373211272923503 s
+TEST_-K-0_1024.log Average time: 1151.4403367999998 s, time std: 26.532546030353707 s
+TEST_-K-3_1024.log Average time: 119.34882159999998 s, time std: 0.7130932071934494 s
+TEST_-KG0_1024.log Average time: 34.883503700000006 s, time std: 0.14466831534724506 s
+TEST_-KG3_1024.log Average time: 32.4322505 s, time std: 0.1959029985585963 s
+TEST_B--0_1024.log Average time: 590.8323816 s, time std: 3.7818095214619585 s
+TEST_B--3_1024.log Average time: 37.91146379999999 s, time std: 0.5630875436217362 s
+TEST_B-G0_1024.log Average time: 27.5096496 s, time std: 0.11003804175029719 s
+TEST_B-G3_1024.log Average time: 24.3131666 s, time std: 0.04459785165050023 s
+TEST_BK-0_1024.log Average time: 433.36633900000004 s, time std: 1.5196459828494975 s
+TEST_BK-3_1024.log Average time: 45.4469973 s, time std: 0.20956268345631157 s
+TEST_BKG0_1024.log Average time: 20.7133861 s, time std: 0.4628603691033502 s
+TEST_BKG3_1024.log Average time: 17.605693300000002 s, time std: 0.11918346086353648 s

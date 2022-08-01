@@ -7,7 +7,7 @@
 class KdTree
 {
 private:
-    const char firstDimension = 'z';
+    const char initialDimension = 'z';
     unsigned int nodeN;
     Triangle **tree;
     Vec3 triG(Triangle *tri)
@@ -129,7 +129,7 @@ public:
         tree = new Triangle *[triN];
         for (int i = 0; i < triN; i++)
             tree[i] = tris[i];
-        sortTreeRec(0, triN - 1, tree, firstDimension);
+        sortTreeRec(0, triN - 1, tree, initialDimension);
     }
     unsigned int getNodeN(){
         return nodeN;
@@ -148,7 +148,10 @@ public:
     void searchNearest(Vec3 p, unsigned int queryN, Triangle **result)
     {
         if(queryN>nodeN)queryN=nodeN;
-        searchNearestRec(0, nodeN - 1, p, firstDimension, queryN, result);
+        searchNearestRec(0, nodeN - 1, p, initialDimension, queryN, result);
+        for(unsigned int i=1;i<queryN;i++){
+            if(result[i]==nullptr)result[i]=result[i-1];
+        }
     }
 };
 
