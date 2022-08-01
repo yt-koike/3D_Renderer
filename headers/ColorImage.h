@@ -1,5 +1,5 @@
-#ifndef ARRAY2D_H
-#define ARRAY2D_H
+#ifndef COLOR_IMAGE_H
+#define COLOR_IMAGE_H
 
 class Array2D
 {
