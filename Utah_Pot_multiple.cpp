@@ -12,7 +12,7 @@
 int main(int argn, char **argv)
 {
     Ray camera(Vec3(0, 5, -35), Vec3(0, 0, 1));
-    Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237));
+    Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237),100,100);
     Material redMt(Color(Vec3(0.1)), Color(Vec3(0.69, 0, 0)), Color(Vec3(0.3, 0, 0)), Vec3(8));
     Material greenMt(Color(Vec3(0.1)), Color(Vec3(0, 0.69, 0)), Color(Vec3(0, 0.3, 0)), Vec3(8));
     Material blueMt(Color(Vec3(0.1)), Color(Vec3(0, 0, 0.69)), Color(Vec3(0, 0, 0.3)), Vec3(8));

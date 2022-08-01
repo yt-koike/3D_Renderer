@@ -6,7 +6,7 @@
 int main(int argc, char **argv)
 {
     Ray camera(Vec3(0, 0, -5), Vec3(0, 0, 1));
-    Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237));
+    Scene scene(camera, Color(255, 255, 255), Color(100, 149, 237),100,100);
 
     // add spheres
     Material mt1(Color(Vec3(0.01)), Color(Vec3(0)), Color(Vec3(0)), Vec3(0));

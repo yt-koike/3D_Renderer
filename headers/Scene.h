@@ -13,22 +13,53 @@
 class Scene
 {
 private:
-  std::vector<Shape *> shapes;
-  std::vector<PointLightSource *> lights;
+  unsigned int shapesN;
+  unsigned int shapesCapacity;
+  Shape **shapes;
+
+  unsigned int lightsN;
+  unsigned int lightsCapacity;
+  PointLightSource **lights;
+
   Ray camera;
   Color envLight;
   Color background;
   float globalRefractionIndex = 1.0;
 
 public:
-  Scene(Ray camera, Color envLight, Color background)
+  Scene(Ray camera, Color envLight, Color background, unsigned int shapesCapacity, unsigned int lightsCapacity)
   {
     this->camera = camera;
     this->envLight = envLight;
     this->background = background;
+    this->shapesCapacity = shapesCapacity;
+    this->shapesN = 0;
+    this->shapes = new Shape *[shapesCapacity];
+    this->lightsCapacity = lightsCapacity;
+    this->lightsN = 0;
+    this->lights = new PointLightSource *[lightsCapacity];
   }
-  void add(Shape *s) { shapes.push_back(s); }
-  void addLight(PointLightSource *light) { lights.push_back(light); }
+  void add(Shape *s)
+  {
+    if (shapesN >= shapesCapacity)
+    {
+      printf("Error: shapes capacity overflow\n");
+      return;
+    }
+    shapes[shapesN] = s;
+    shapesN++;
+  }
+  void addLight(PointLightSource *light)
+  {
+    if (lightsN >= lightsCapacity)
+    {
+      printf("Error: lights capacity overflow\n");
+      return;
+    }
+
+    lights[lightsN] = light;
+    lightsN++;
+  }
   ColorImage draw(int width, int height);
   void testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *crosses, unsigned int *shapeIds);
   Color rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursionLevel);
@@ -66,7 +97,7 @@ ColorImage Scene::draw(int width, int height)
 void Scene::testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *crosses, unsigned int *shapeIds)
 {
   IntersectionPoint *crosses_tmp = new IntersectionPoint[rayN];
-  for (unsigned int i = 0; i < shapes.size(); i++)
+  for (unsigned int i = 0; i < shapesN; i++)
   {
     if (!shapes[i]->isVisible())
       continue;
@@ -79,8 +110,7 @@ void Scene::testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *c
         if (!crosses[rayIdx].exists || cross.distance <= crosses[rayIdx].distance)
         {
           crosses[rayIdx] = cross;
-          if (shapeIds != nullptr)
-            shapeIds[rayIdx] = i;
+          shapeIds[rayIdx] = i;
         }
       }
     }
@@ -97,19 +127,20 @@ Color Scene::rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursi
   if (recursionLevel > MAX_RECURSION)
     return Vec3(0);
   Color color = shape->envLightness(envLight);
-  for (int i = 0; i < lights.size(); i++)
+  for (int i = 0; i < lightsN; i++)
   {
     PointLightSource light = *lights[i];
-    /*
+    #ifdef SHADOW_ENABLE
     // add shadows
-    Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.01));
+    Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.001));
     Vec3 shadowCheckerDir = light.position.sub(shadowCheckerPos);
     Ray shadowChecker(shadowCheckerPos, shadowCheckerDir);
     IntersectionPoint shadowCross;
-    testIntersectionPointWithAll(shadowChecker, &shadowCross,nullptr);
-    if (shadowCross.exists)
+    unsigned int shadowShapeId;
+    testIntersectionPointWithAll(1, &shadowChecker, &shadowCross, &shadowShapeId);
+    if (shadowCross.exists && shadowCross.distance < shadowCheckerDir.mag())
       continue;
-    */
+    #endif
     color = color.add(shape->lightness(cross, ray.getDir(), light));
   }
   Material mt = shape->getMaterial();
