@@ -31,7 +31,6 @@ public:
   void addLight(PointLightSource *light) { lights.push_back(light); }
   ColorImage draw(int width, int height);
   void testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *crosses, unsigned int *shapeIds);
-  void testIntersectionPointWithAll(Ray r, IntersectionPoint *cross, unsigned int *shapeId) { testIntersectionPointWithAll(1, &r, cross, shapeId); }
   Color rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursionLevel);
   void rayTrace(int rayN, Ray *rs, Color *result);
 };
@@ -63,10 +62,11 @@ ColorImage Scene::draw(int width, int height)
   return img;
 }
 
+// test rays whether it hits any objects
 void Scene::testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *crosses, unsigned int *shapeIds)
 {
   IntersectionPoint *crosses_tmp = new IntersectionPoint[rayN];
-  for (int i = 0; i < shapes.size(); i++)
+  for (unsigned int i = 0; i < shapes.size(); i++)
   {
     if (!shapes[i]->isVisible())
       continue;
@@ -88,6 +88,7 @@ void Scene::testIntersectionPointWithAll(int rayN, Ray *rs, IntersectionPoint *c
   delete crosses_tmp;
 }
 
+// calculate color out of ray, shape and the cross where it hits the shape
 Color Scene::rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursionLevel)
 {
   // rayTrace START
@@ -116,13 +117,13 @@ Color Scene::rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursi
   {
     Vec3 n = cross.normal;
     Vec3 v = ray.getDir().mult(-1);
-    Vec3 mirrorPos = cross.position.add(cross.normal.mult(0.001));
+    Vec3 mirrorPos = cross.position.add(cross.normal.mult(0.1));
     Vec3 mirrorDir = n.mult(2 * v.dot(n)).sub(v);
     Ray reRay(mirrorPos, mirrorDir);
     IntersectionPoint reRayCross;
     unsigned int reRayShapeId;
-    testIntersectionPointWithAll(reRay, &reRayCross, &reRayShapeId);
-    Color reflect = rayCalc(reRay, reRayCross, &shape[reRayShapeId], recursionLevel + 1).clamp();
+    testIntersectionPointWithAll(1, &reRay, &reRayCross, &reRayShapeId);
+    Color reflect = rayCalc(reRay, reRayCross, shapes[reRayShapeId], recursionLevel + 1).clamp();
     Color catadioptricColor;
     if (mt.getUseRefraction())
     {
@@ -150,8 +151,8 @@ Color Scene::rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursi
       Ray refractionRay(refractionPos, refractionDir);
       IntersectionPoint refractionCross;
       unsigned int refractionShapeId;
-      testIntersectionPointWithAll(reRay, &refractionCross, &refractionShapeId);
-      Color refraction = rayCalc(refractionRay, refractionCross, &shape[refractionShapeId], recursionLevel + 1);
+      testIntersectionPointWithAll(1, &refractionRay, &refractionCross, &refractionShapeId);
+      Color refraction = rayCalc(refractionRay, refractionCross, shapes[refractionShapeId], recursionLevel + 1);
       catadioptricColor = reflect.mult(Cr).add(refraction.mult(1 - Cr));
     }
     else
