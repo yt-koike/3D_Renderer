@@ -15,6 +15,7 @@ private:
 public:
   Sphere(){};
   Sphere(Vec3 c, double r);
+  Sphere(Vec3 c, double r,Material mt);
   Vec3 getCenter() { return center; }
   IntersectionPoint testIntersection(Ray r);
   void print()
@@ -38,10 +39,17 @@ Sphere::Sphere(Vec3 c, double r)
   generateBoundary();
 }
 
+Sphere::Sphere(Vec3 c, double r, Material mt)
+{
+  this->center = c;
+  this->radius = r;
+  this->setMaterial(mt);
+  generateBoundary();
+}
+
 IntersectionPoint Sphere::testIntersection(Ray r)
 {
   IntersectionPoint res;
-//  if(!getBoundary()->doesHit(r))return res; // faster to remove
   Vec3 s = r.getPoint().sub(center);
   Vec3 d = r.getDir();
   double A, B, C;

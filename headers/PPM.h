@@ -2,7 +2,7 @@
 #define PPM_H
 #include<iostream>
 #include<fstream>
-#include"Array2D.h"
+#include"ColorImage.h"
 
 class Pixel{
   public:

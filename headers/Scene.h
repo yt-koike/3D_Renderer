@@ -3,7 +3,7 @@
 #include "Vector.h"
 #include "Color.h"
 #include "shapes/Shape.h"
-#include "Array2D.h"
+#include "ColorImage.h"
 #include "Ray.h"
 #include <float.h>
 #include <vector>
@@ -100,13 +100,14 @@ Color Scene::rayCalc(Ray ray, IntersectionPoint cross, Shape *shape, int recursi
   {
     PointLightSource light = *lights[i];
     /*
-          Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.01));
-          Vec3 shadowCheckerDir = light.position.sub(shadowCheckerPos);
-          Ray shadowChecker(shadowCheckerPos, shadowCheckerDir);
-          IntersectionPoint shadowCross;
-          testIntersectionPointWithAll(shadowChecker, &shadowCross,nullptr);
-          if (shadowCross.exists)
-            continue;
+    // add shadows
+    Vec3 shadowCheckerPos = cross.position.add(cross.normal.mult(0.01));
+    Vec3 shadowCheckerDir = light.position.sub(shadowCheckerPos);
+    Ray shadowChecker(shadowCheckerPos, shadowCheckerDir);
+    IntersectionPoint shadowCross;
+    testIntersectionPointWithAll(shadowChecker, &shadowCross,nullptr);
+    if (shadowCross.exists)
+      continue;
     */
     color = color.add(shape->lightness(cross, ray.getDir(), light));
   }
@@ -172,8 +173,10 @@ void Scene::rayTrace(int rayN, Ray *rays, Color *result)
   for (int i = 0; i < rayN; i++)
   {
     result[i] = rayCalc(rays[i], crosses[i], shapes[shapeIds[i]], 0);
-    //result[i].print();
   }
+  delete crosses;
+  delete shapeIds;
+  return;
 }
 
 #endif
