@@ -1,6 +1,7 @@
 #define BOUNDARY_BOX_MODE
 // #define KD_TREE_MODE
 // #define GPU_MODE
+#define SHADOW_ENABLE
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
